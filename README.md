@@ -1,4 +1,4 @@
-# 🛍️ E-Commerce Deal Hunter & Scam Prevention RL Agent
+# 🛍️ SmartShop: E-Commerce Deal Hunter & Scam Prevention RL Agent
 
 A full-stack AI application that uses a **Deep Q-Network (DQN)** to evaluate
 live product search results in real time — maximising deals, blocking scams,
