@@ -1,0 +1,21 @@
+# E-Commerce Deal Hunter — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Core ML
+stable-baselines3[extra]>=2.3.0
+gymnasium>=0.29.1
+torch>=2.2.0
+
+# Data
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
+
+# UI
+streamlit>=1.35.0
+
+# Live search (optional — mock fallback works without this)
+google-search-results>=2.4.2     # SerpAPI client
+
+# Utilities
+tqdm>=4.66.0
