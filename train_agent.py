@@ -27,6 +27,7 @@ from stable_baselines3.common.monitor import Monitor
 
 # ── Local ─────────────────────────────────────────────────────────────────────
 from shopping_env import ShoppingEnv
+from evaluation import evaluate_policy
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 MODEL_SAVE_PATH  = "dqn_shopping_agent"          # SB3 appends .zip automatically
@@ -130,58 +131,14 @@ DQN_HYPERPARAMS = dict(
 
 def run_evaluation(model: DQN, csv_path: str, n_episodes: int = EVAL_EPISODES) -> dict:
     """
-    Rolls out the trained policy (no exploration) and returns a stats dict.
+    Rolls out the trained DQN policy (no exploration) and returns a stats
+    dict. Thin wrapper around evaluation.evaluate_policy() so the DQN and
+    the contextual-bandit baseline (bandit_baseline.py) are scored with
+    exactly the same rollout/metric logic — see evaluation.py for why that
+    matters for a fair comparison.
     """
-    env = ShoppingEnv(csv_path=csv_path, render_mode=None)
-
-    metrics = {
-        "scam_hits": 0, "scams_avoided": 0,
-        "good_recs": 0, "deals_missed": 0,
-        "episode_returns": [],
-    }
-
-    for ep in range(n_episodes):
-        obs, _ = env.reset(seed=ep)
-        ep_return = 0.0
-        done = False
-
-        while not done:
-            action, _ = model.predict(obs, deterministic=True)
-            obs, reward, terminated, truncated, info = env.step(int(action))
-            ep_return += reward
-            done = terminated or truncated
-
-            reason = info.get("reward_reason", "")
-            if   "SCAM recommended" in reason:  metrics["scam_hits"]    += 1
-            elif "Scam skipped"     in reason:  metrics["scams_avoided"] += 1
-            elif "Missed legit"     in reason:  metrics["deals_missed"]  += 1
-            elif "Good recommendation" in reason: metrics["good_recs"]   += 1
-
-        metrics["episode_returns"].append(ep_return)
-
-    env.close()
-
-    total = sum([
-        metrics["scam_hits"], metrics["scams_avoided"],
-        metrics["good_recs"], metrics["deals_missed"]
-    ])
-    returns = metrics["episode_returns"]
-
-    print("\n" + "=" * 65)
-    print("  EVALUATION RESULTS")
-    print("=" * 65)
-    print(f"  Episodes evaluated      : {n_episodes}")
-    print(f"  Mean episode return     : {np.mean(returns):>8.1f}")
-    print(f"  Std  episode return     : {np.std(returns):>8.1f}")
-    print(f"  Min / Max episode return: {np.min(returns):>8.1f} / {np.max(returns):>8.1f}")
-    print(f"  ---")
-    print(f"  Good recommendations    : {metrics['good_recs']:>6,}  ({metrics['good_recs']/max(total,1)*100:5.1f}%)")
-    print(f"  Scams correctly avoided : {metrics['scams_avoided']:>6,}  ({metrics['scams_avoided']/max(total,1)*100:5.1f}%)")
-    print(f"  Scam slips (BAD!)       : {metrics['scam_hits']:>6,}  ({metrics['scam_hits']/max(total,1)*100:5.1f}%)")
-    print(f"  Legit deals missed      : {metrics['deals_missed']:>6,}  ({metrics['deals_missed']/max(total,1)*100:5.1f}%)")
-    print("=" * 65)
-
-    return metrics
+    predict_fn = lambda obs: int(model.predict(obs, deterministic=True)[0])
+    return evaluate_policy(predict_fn, csv_path=csv_path, n_episodes=n_episodes, label="DQN")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

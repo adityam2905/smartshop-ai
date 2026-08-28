@@ -228,6 +228,12 @@ def init_session_state() -> None:
         "agent_confidence":   {},         # item_index → q-value spread (optional display)
         "toast":              {},         # {item_index: "like"/"dislike"} for UI feedback
         "use_mock":           not bool(os.environ.get("SERPAPI_KEY", "")),
+        # Per-category preference scores for THIS browser session only.
+        # Scoped here (not in a module-level dict in scraper.py) so that two
+        # people using the same deployed app never see each other's taste
+        # bleed into their results — see scraper.py's "User preference
+        # store" section for the bug this replaced.
+        "user_prefs":         {},
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -249,13 +255,13 @@ def get_model():
         return None, str(exc)
 
 
-def get_preference_snapshot() -> tuple[tuple[str, float], ...]:
-    """Stable cache key input for search results that depend on preferences."""
+def get_preference_snapshot(user_prefs: dict) -> tuple[tuple[str, float], ...]:
+    """Stable, hashable cache-key input for search results that depend on preferences."""
     categories = [
         "Electronics", "Clothing", "Home & Garden",
         "Sports", "Books", "Toys", "Beauty", "Automotive",
     ]
-    return tuple((category, get_user_preference(category)) for category in categories)
+    return tuple((category, get_user_preference(category, user_prefs)) for category in categories)
 
 
 @st.cache_data(show_spinner=False, ttl=300)
@@ -263,10 +269,20 @@ def cached_search(
     query: str,
     use_mock: bool,
     num_results: int,
-    _pref_snapshot: tuple[tuple[str, float], ...],
+    pref_snapshot: tuple[tuple[str, float], ...],
+    _user_prefs: dict,
 ) -> list[dict]:
-    # The snapshot is part of the cache key so feedback changes invalidate stale results.
-    return search_products(query, use_mock=use_mock, num_results=num_results)
+    # `pref_snapshot` (a hashable tuple) IS part of the cache key, so a
+    # Like/Dislike that changes preferences invalidates stale cached results.
+    # `_user_prefs` starts with an underscore, which tells Streamlit to skip
+    # hashing it (a plain dict isn't hashable) while still passing the live
+    # object through — it's what actually gets forwarded to feature
+    # engineering. NOTE: the previous version of this function accepted the
+    # snapshot as `_pref_snapshot` (leading underscore), which meant
+    # Streamlit silently excluded it from the cache key despite the comment
+    # claiming otherwise — preference changes were not invalidating the
+    # cache. Renaming it to `pref_snapshot` here fixes that.
+    return search_products(query, use_mock=use_mock, num_results=num_results, user_prefs=_user_prefs)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -339,8 +355,8 @@ def handle_feedback(feat: dict, sentiment: str) -> None:
     st.session_state.feedback_buffer.append(experience)
     st.session_state.feedback_counts[sentiment] += 1
 
-    # Update per-category preference
-    update_user_preference(feat.get("category", "General"), pref_delta)
+    # Update per-category preference (scoped to this session only)
+    update_user_preference(feat.get("category", "General"), pref_delta, st.session_state.user_prefs)
 
     # Mark toast for this item
     st.session_state.toast[feat["_item_index"]] = sentiment
@@ -518,7 +534,7 @@ def render_sidebar(model_loaded: bool) -> None:
             "Sports", "Books", "Toys", "Beauty", "Automotive",
         ]
         for cat in categories:
-            score = get_user_preference(cat)
+            score = get_user_preference(cat, st.session_state.user_prefs)
             st.markdown(
                 f'<div class="pref-bar-wrap">'
                 f'  <div class="pref-bar-label"><span>{cat}</span>'
@@ -670,7 +686,8 @@ def main() -> None:
                     final_query,
                     st.session_state.use_mock,
                     SEARCH_RESULT_LIMIT,
-                    get_preference_snapshot(),
+                    get_preference_snapshot(st.session_state.user_prefs),
+                    st.session_state.user_prefs,
                 )
                 # 2. Run agent inference
                 recs, skipped, scams_caught = run_agent_inference(

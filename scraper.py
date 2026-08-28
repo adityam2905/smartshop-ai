@@ -147,35 +147,60 @@ def _get_tld(domain: str) -> str:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# User preference store (persisted in a simple dict; app.py can swap this)
+# User preference store
 # ─────────────────────────────────────────────────────────────────────────────
+# IMPORTANT: preferences must be kept in a store scoped to one user/session,
+# never in a single shared module-level dict. A Streamlit app process is
+# shared by every visitor, so a plain module-level dict here would let one
+# person's likes/dislikes bleed into everyone else's recommendations.
+#
+# The functions below take an explicit `prefs` dict (e.g. app.py passes
+# `st.session_state.user_prefs`, one per browser session). `_STANDALONE_PREFS`
+# only exists as a fallback for CLI/standalone use (`python scraper.py ...`)
+# where there's no session to scope to — it is NOT safe to rely on this
+# fallback in a multi-user deployment.
 
-# Category → accumulated preference score (starts neutral at 0.5)
-_USER_PREFS: dict[str, float] = {}
+_STANDALONE_PREFS: dict[str, float] = {}
 
-def update_user_preference(category: str, delta: float) -> None:
+
+def update_user_preference(
+    category: str, delta: float, prefs: Optional[dict] = None
+) -> dict:
     """
-    Called by app.py after a Like (+0.1) or Dislike (-0.1).
-    Keeps scores in [0, 1].
+    Called by app.py after a Like (+delta) or Dislike (-delta).
+    Keeps scores in [0, 1]. Mutates and returns `prefs` in place (or the
+    standalone fallback store if `prefs` is not given).
     """
-    current = _USER_PREFS.get(category, 0.5)
-    _USER_PREFS[category] = float(np.clip(current + delta, 0.0, 1.0))
+    store = _STANDALONE_PREFS if prefs is None else prefs
+    current = store.get(category, 0.5)
+    store[category] = float(np.clip(current + delta, 0.0, 1.0))
+    return store
 
-def get_user_preference(category: str) -> float:
-    return _USER_PREFS.get(category, 0.5)
+
+def get_user_preference(category: str, prefs: Optional[dict] = None) -> float:
+    store = _STANDALONE_PREFS if prefs is None else prefs
+    return store.get(category, 0.5)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Feature Engineering  ← the core function called by app.py
 # ─────────────────────────────────────────────────────────────────────────────
 
-def extract_features(item: dict, market_avg_price: Optional[float] = None) -> dict:
+def extract_features(
+    item: dict,
+    market_avg_price: Optional[float] = None,
+    user_prefs: Optional[dict] = None,
+) -> dict:
     """
     Converts a raw product dict (from SerpAPI JSON or mock data)
     into the 4-feature state vector consumed by the DQN model.
 
     Accepted raw keys (SerpAPI Google Shopping format):
         title, price, extracted_price, link, source, category, rating, reviews
+
+    `user_prefs` should be the caller's session-scoped preference dict (see
+    the "User preference store" section above) — pass it through so the
+    `user_preference_score` feature reflects the right user's history.
 
     Returns a dict:
         {
@@ -229,7 +254,7 @@ def extract_features(item: dict, market_avg_price: Optional[float] = None) -> di
 
     # --- user preference score ---
     category = item.get("category", "General")
-    user_pref = get_user_preference(category)
+    user_pref = get_user_preference(category, user_prefs)
 
     # --- metadata ---
     product_name = item.get("title") or item.get("product_name", "Unknown Product")
@@ -346,7 +371,12 @@ def fetch_serpapi_results(query: str, num_results: int = 10) -> list[dict]:
 # Public API — called by app.py
 # ─────────────────────────────────────────────────────────────────────────────
 
-def search_products(query: str, use_mock: bool = False, num_results: int = 10) -> list[dict]:
+def search_products(
+    query: str,
+    use_mock: bool = False,
+    num_results: int = 10,
+    user_prefs: Optional[dict] = None,
+) -> list[dict]:
     """
     Main entry point for app.py.
 
@@ -358,6 +388,8 @@ def search_products(query: str, use_mock: bool = False, num_results: int = 10) -
         query:       User search string (e.g. "Sony Headphones").
         use_mock:    Force mock data regardless of API availability.
         num_results: Max number of listings to return.
+        user_prefs:  Caller's session-scoped preference dict, forwarded to
+                     extract_features() so results reflect the right user.
 
     Returns:
         List of feature dicts (see extract_features() for schema).
@@ -382,7 +414,7 @@ def search_products(query: str, use_mock: bool = False, num_results: int = 10) -
     feature_list = []
     for item in raw_results:
         try:
-            features = extract_features(item, market_avg_price=market_avg)
+            features = extract_features(item, market_avg_price=market_avg, user_prefs=user_prefs)
             feature_list.append(features)
         except Exception as exc:
             print(f"[scraper] Skipping item due to feature error: {exc}")
