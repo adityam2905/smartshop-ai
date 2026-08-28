@@ -1,4 +1,4 @@
-# 🛍️ E-Commerce Deal Hunter & Scam Prevention RL Agent
+# 🛍️ SmartShop: E-Commerce Deal Hunter & Scam Prevention RL Agent
 
 [![CI](https://github.com/adityam2905/ai-deal-hunter/actions/workflows/ci.yml/badge.svg)](https://github.com/adityam2905/ai-deal-hunter/actions/workflows/ci.yml)
 
