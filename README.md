@@ -1,6 +1,9 @@
 # 🛍️ SmartShop: E-Commerce Deal Hunter & Scam Prevention RL Agent
 
-[![CI](https://github.com/adityam2905/ai-deal-hunter/actions/workflows/ci.yml/badge.svg)](https://github.com/adityam2905/ai-deal-hunter/actions/workflows/ci.yml)
+[![CI](https://github.com/adityam2905/smartshop-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/adityam2905/smartshop-ai/actions/workflows/ci.yml)
+
+**🔗 [Live demo](#) — deployed on Streamlit Community Cloud** *(update this
+link once deployed — see [Deployment](#deployment) below)*
 
 A full-stack AI application that uses a **Deep Q-Network (DQN)** to evaluate
 live product search results in real time — maximising deals, blocking scams,
@@ -8,7 +11,8 @@ and personalising recommendations based on your live feedback.
 
 See [Limitations & Honest Notes](#limitations--honest-notes) below for a
 candid look at where the DQN framing is doing more work than the model
-underneath it, and what a `bandit_baseline.py` comparison shows about that.
+underneath it, and what the `bandit_baseline.py` and `supervised_baseline.py`
+comparisons show about that.
 
 ---
 
@@ -19,18 +23,22 @@ data_generator.py   →   product_listings.csv
                                ↓
 shopping_env.py     →   ShoppingEnv (Gymnasium)
                                ↓
-        ┌──────────────────────┴──────────────────────┐
-        ↓                                              ↓
-train_agent.py  →  dqn_shopping_agent.zip   bandit_baseline.py  (baseline comparison)
-        └──────────────────────┬──────────────────────┘
-                        evaluation.py  (shared eval harness)
+        ┌──────────────────────┼──────────────────────┐
+        ↓                      ↓                      ↓
+train_agent.py  →  bandit_baseline.py    supervised_baseline.py
+dqn_shopping_agent.zip   (bandit baseline)   (LogReg / RandomForest
+        │                      │              scam classifiers)
+        └──────────────────────┼──────────────────────┘
+                        evaluation.py  (shared eval harness, DQN + bandit)
                                ↓
 scraper.py          →   feature dicts from SerpAPI / mock
                                ↓
-app.py              →   Streamlit UI + online learning loop
+app.py              →   Streamlit UI + online learning loop  →  live demo
 
-tests/               →   pytest coverage for shopping_env.py, scraper.py, bandit_baseline.py
-.github/workflows/   →   CI: installs requirements-test.txt, runs pytest on every push/PR
+tests/               →   pytest coverage for shopping_env.py, scraper.py,
+                          bandit_baseline.py, supervised_baseline.py
+.github/workflows/   →   CI: runs pytest + smoke-tests both baseline scripts
+                          on every push/PR
 ```
 
 ---
@@ -85,6 +93,12 @@ python bandit_baseline.py --compare-dqn
 ```
 See [Contextual Bandit Baseline](#contextual-bandit-baseline) below for why this exists.
 
+### 7. (Optional) Run the supervised scam-detection baselines
+```bash
+python supervised_baseline.py
+```
+See [Supervised Baseline](#supervised-baseline) below.
+
 ---
 
 ## File Reference
@@ -96,10 +110,12 @@ See [Contextual Bandit Baseline](#contextual-bandit-baseline) below for why this
 | `train_agent.py`    | 3 | DQN training, checkpointing, evaluation, online fine-tuning |
 | `scraper.py`        | 4 | SerpAPI live fetch + feature engineering + trust scoring |
 | `app.py`            | 5 | Streamlit UI, agent inference, Like/Dislike feedback loop |
+| `dqn_shopping_agent.zip` | — | Pretrained DQN weights, checked into the repo so a fresh deploy works without retraining (see [Deployment](#deployment)) |
 | `evaluation.py`     | — | Shared rollout/scoring harness used by both the DQN and the bandit baseline |
 | `bandit_baseline.py`| — | A from-scratch linear contextual bandit, benchmarked against the DQN |
-| `tests/`            | — | pytest suite covering the environment, feature engineering, and the bandit |
-| `requirements.txt`  | — | Full dependency set (incl. torch, stable-baselines3, streamlit) |
+| `supervised_baseline.py` | — | Logistic Regression / Random Forest scam classifiers, benchmarked against the app's hard rule |
+| `tests/`            | — | pytest suite covering the environment, feature engineering, and both baselines |
+| `requirements.txt`  | — | Full dependency set (torch, stable-baselines3, streamlit — trimmed, see file comments) |
 | `requirements-test.txt` | — | Lean dependency set for `pytest` / CI (no torch, no streamlit) |
 
 ---
@@ -164,9 +180,9 @@ trusted retailers and scam domains — perfect for demos.
 ## Testing
 
 The test suite covers `shopping_env.py`'s reward logic, `scraper.py`'s
-feature engineering and trust heuristics, and `bandit_baseline.py`. It
-deliberately does **not** require torch/stable-baselines3, so it installs
-and runs in seconds:
+feature engineering and trust heuristics, `bandit_baseline.py`, and
+`supervised_baseline.py`. It deliberately does **not** require
+torch/stable-baselines3, so it installs and runs in seconds:
 
 ```bash
 pip install -r requirements-test.txt
@@ -212,6 +228,76 @@ this task's metrics (mean episode return, good-rec rate, scam-avoid rate).
 That's the point: it's evidence that the extra machinery isn't earning its
 complexity for *this* formulation of the problem, and it's worth stating
 that explicitly rather than presenting DQN as required.
+
+---
+
+## Supervised Baseline
+
+The bandit comparison above is about the *policy* task (Recommend vs.
+Skip, which mixes "is this a scam" with "is this deal good enough to
+show"). `supervised_baseline.py` asks a narrower question about just the
+safety-critical piece: on the binary "is this listing a scam?" label, how
+does a plain supervised classifier compare to the hard-coded
+`site_trust_score < 0.3` rule `app.py` actually ships with?
+
+```bash
+python supervised_baseline.py
+```
+
+It trains a Logistic Regression and a Random Forest on the same 4 features
+the RL agent sees, evaluates precision/recall/F1 on a held-out split, and
+prints the same metrics for the hard rule for a direct comparison. On the
+current synthetic dataset all three land at a perfect 1.000 across the
+board — which is a data-quality finding, not a model-quality one (see
+[Limitations](#limitations--honest-notes) #3): `site_trust_score`,
+`discount_percentage`, and `normalized_price` are all independently
+near-perfect separators of scam vs. legit by construction, so there's no
+real signal left for a classifier to add over the hard rule. The Random
+Forest's feature-importance output makes this concrete — it's spreading
+credit across three features that are each already sufficient on their
+own, rather than picking up on some feature *interaction* that only a
+learned model would find. That's the strongest argument in this repo for
+harder, noisier training data being the single highest-value next step.
+
+---
+
+## Deployment
+
+A live demo matters more than instructions for reproducing one — a
+recruiter is far more likely to click a link than to clone a repo and run
+five setup commands. This project deploys to
+[Streamlit Community Cloud](https://streamlit.io/cloud) (free tier):
+
+1. Push this repo to GitHub (already done).
+2. Go to [share.streamlit.io](https://share.streamlit.io), sign in with
+   GitHub, and authorize Streamlit's access to your repos.
+3. Click **New app**, pick this repo, branch `main`, main file `app.py`,
+   and deploy.
+4. No secrets are required — without a `SERPAPI_KEY`, the app automatically
+   falls back to the rich mock dataset in `scraper.py`, which is exactly
+   what you want for a public demo anyway (no API quota to run out, and a
+   guaranteed mix of legit + scam listings to show off the scam filter).
+   To enable live Google Shopping results instead, add `SERPAPI_KEY` under
+   the app's **Settings → Secrets**.
+
+Two things made this possible that weren't true before this pass:
+
+- **The trained model is now checked into the repo.** `app.py` hard-fails
+  with "Model not found" if `dqn_shopping_agent.zip` is missing, and a
+  fresh deploy only has what's in git — so the model can't be `.gitignore`d
+  the way `product_listings.csv` still is. At ~425KB this is a reasonable
+  file to commit directly; a larger model would call for Git LFS or a
+  model registry instead.
+- **`requirements.txt` no longer installs `stable-baselines3[extra]`.**
+  The extras pull in opencv-python, pygame, and Atari-related packages this
+  project never touches, roughly doubling install time/size for nothing —
+  which matters on a free-tier build with limited time/resources. See the
+  comments in `requirements.txt` for the CPU-only torch wheel trick if a
+  build is still slow (couldn't verify that specific optimization from
+  this environment's network, so it's documented rather than applied).
+
+Once deployed, replace the `#` placeholder in the **Live demo** link at the
+top of this README with the actual `*.streamlit.app` URL.
 
 ---
 
@@ -269,7 +355,16 @@ directly is more convincing than hoping nobody asks:
    not actually invalidating cached search results. Renamed to
    `pref_snapshot` (no underscore) to fix that.
 
+6. **A supervised classifier doesn't beat the hard rule here — and that's
+   informative, not a null result.** See
+   [Supervised Baseline](#supervised-baseline) above: Logistic Regression,
+   Random Forest, and the hard rule all score a perfect 1.000 on the
+   current dataset. That ceiling is the same data-separability issue as
+   item 3 above, from a different angle — worth reading together.
+
 What's *not* addressed here (kept out of scope for this pass, listed for
-transparency): Docker/deployment, a persistent (non-in-memory) preference
-store, prioritized replay for feedback samples, and richer NLP-derived
-features from listing text.
+transparency): a persistent (non-in-memory) preference store, prioritized
+replay for feedback samples, and richer NLP-derived features from listing
+text. The live demo (see [Deployment](#deployment)) also means the
+`app.py` multi-user preference fix in #5 is no longer a hypothetical —
+it's now live and shared by anyone who opens the demo link.

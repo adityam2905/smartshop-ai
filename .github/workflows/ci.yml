@@ -24,9 +24,10 @@ jobs:
 
       # Deliberately installs only requirements-test.txt, not the full
       # requirements.txt (torch + stable-baselines3 + streamlit) — the unit
-      # tests exercise shopping_env.py, scraper.py, evaluation.py, and
-      # bandit_baseline.py, none of which need the DQN/UI stack. Keeps CI
-      # fast instead of pulling in a multi-hundred-MB torch install.
+      # tests exercise shopping_env.py, scraper.py, evaluation.py,
+      # bandit_baseline.py, and supervised_baseline.py, none of which need
+      # the DQN/UI stack. Keeps CI fast instead of pulling in a
+      # multi-hundred-MB torch install.
       - name: Install test dependencies
         run: pip install -r requirements-test.txt
 
@@ -35,3 +36,13 @@ jobs:
 
       - name: Run test suite
         run: pytest -v
+
+      # Beyond the unit tests above (which exercise internals in isolation),
+      # actually run the two baseline scripts end-to-end on the real
+      # generated dataset — catches breakage the unit tests wouldn't (CLI
+      # arg handling, file I/O, a stray import, etc).
+      - name: Smoke-test the contextual bandit baseline
+        run: python bandit_baseline.py --train-episodes 5 --episodes 3
+
+      - name: Smoke-test the supervised baseline
+        run: python supervised_baseline.py

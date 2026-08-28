@@ -2,7 +2,26 @@
 # Install with: pip install -r requirements.txt
 
 # Core ML
-stable-baselines3[extra]>=2.3.0
+#
+# NOTE: this uses plain `stable-baselines3`, not `stable-baselines3[extra]`.
+# The [extra] variant pulls in opencv-python, pygame/atari, and a few other
+# packages this project never uses (no image observations, no Atari envs) —
+# they roughly double the install size/time for nothing. `tensorboard` is
+# listed explicitly instead, since train_agent.py's tensorboard_log= does
+# need it and it's not guaranteed without [extra]. This matters most on a
+# resource-constrained deploy target (e.g. Streamlit Community Cloud's free
+# tier), where a smaller, faster install is the difference between a build
+# that succeeds and one that times out.
+#
+# If you deploy somewhere with a slow/limited build and torch itself is the
+# bottleneck, installing the CPU-only wheel instead of PyPI's default
+# (which bundles CUDA support you won't use on a CPU-only host) cuts the
+# torch download from ~1-2GB to ~200MB:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# then `pip install -r requirements.txt` as normal (pip will see torch is
+# already satisfied and skip reinstalling it).
+stable-baselines3>=2.3.0
+tensorboard>=2.16.0
 gymnasium>=0.29.1
 torch>=2.2.0
 

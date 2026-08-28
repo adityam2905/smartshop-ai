@@ -1,13 +1,14 @@
 # Lean dependency set for running the test suite (tests/) and for
-# bandit_baseline.py in evaluate-only mode.
+# bandit_baseline.py / supervised_baseline.py in evaluate-only mode.
 #
 # Deliberately does NOT include torch / stable-baselines3 / streamlit —
-# shopping_env.py, scraper.py, evaluation.py, and bandit_baseline.py don't
-# need them, and skipping them keeps `pip install` (and CI) fast. Install
-# the full requirements.txt separately when you need to train or run the
-# DQN or the Streamlit app.
+# shopping_env.py, scraper.py, evaluation.py, bandit_baseline.py, and
+# supervised_baseline.py don't need them, and skipping them keeps
+# `pip install` (and CI) fast. Install the full requirements.txt separately
+# when you need to train or run the DQN or the Streamlit app.
 
 numpy>=1.26.0
 pandas>=2.2.0
 gymnasium>=0.29.1
 pytest>=8.0.0
+scikit-learn>=1.4.0

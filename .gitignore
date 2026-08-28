@@ -26,7 +26,14 @@ checkpoints/
 best_model/
 
 # Generated assets and model exports
-dqn_shopping_agent.zip
+#
+# dqn_shopping_agent.zip is deliberately NOT ignored (see below) — it's
+# ~425KB, small enough to check in directly, and app.py refuses to run
+# without it. A deployed instance (e.g. Streamlit Community Cloud) only
+# gets what's in the repo, so the trained model has to be committed for a
+# live demo to work out of the box. For a larger model this would be the
+# wrong call (use Git LFS or a model registry instead) — noted here so it
+# reads as a deliberate choice, not an oversight.
 product_listings.csv
 
 # Local OS files
