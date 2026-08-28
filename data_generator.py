@@ -167,6 +167,13 @@ def generate_dataset(n: int = 5000, scam_ratio: float = 0.25) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    import sys
+    if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+        # Console prints below use non-ASCII characters (→); on Windows the
+        # default console codepage (cp1252) can't encode them and this
+        # script would crash with a UnicodeEncodeError otherwise.
+        sys.stdout.reconfigure(encoding="utf-8")
+
     print("Generating synthetic dataset...")
     df = generate_dataset(n=5000, scam_ratio=0.25)
     df.to_csv("product_listings.csv", index=False)

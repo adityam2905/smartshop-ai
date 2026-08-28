@@ -42,6 +42,7 @@ DOMAIN_TRUST_DB: dict[str, float] = {
     "costco.com":         0.95,
     "apple.com":          0.98,
     "samsung.com":        0.96,
+    "nike.com":           0.97,
     "bhphotovideo.com":   0.94,
     "adorama.com":        0.93,
     "newegg.com":         0.92,
@@ -427,6 +428,13 @@ def search_products(
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import sys
+    if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+        # Console output below uses non-ASCII markers (→, 🚨, ✅); on Windows
+        # the default console codepage (cp1252) can't encode them and this
+        # script would crash with a UnicodeEncodeError otherwise.
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(description="Test the scraper pipeline.")
     parser.add_argument("query", nargs="?", default="Sony Headphones",
                         help="Product search query")

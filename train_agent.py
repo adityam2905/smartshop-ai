@@ -298,6 +298,13 @@ def fine_tune_on_feedback(
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import sys
+    if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+        # train() prints progress lines containing "→"; on Windows the
+        # default console codepage (cp1252) can't encode that character and
+        # this script would crash with a UnicodeEncodeError otherwise.
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(description="Train the DQN Deal Hunter agent.")
     parser.add_argument(
         "--timesteps", type=int, default=100_000,

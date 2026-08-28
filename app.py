@@ -10,6 +10,7 @@ Environment variables (optional):
                     (falls back to rich mock data if not set)
 """
 
+import copy
 import os
 import numpy as np
 import streamlit as st
@@ -43,6 +44,10 @@ DISLIKE_PREF_DELTA  = -0.05
 SCAM_THRESHOLD      = 0.30
 FINETUNE_GRAD_STEPS = 50
 SEARCH_RESULT_LIMIT  = 12
+CATEGORIES = [
+    "Electronics", "Clothing", "Home & Garden",
+    "Sports", "Books", "Toys", "Beauty", "Automotive",
+]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -245,7 +250,17 @@ def init_session_state() -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def get_model():
-    """Load the DQN model once and cache it for the Streamlit session."""
+    """
+    Load the DQN model once and cache it as a process-wide singleton.
+
+    IMPORTANT: st.cache_resource shares this exact object across every
+    visitor's session on a deployed app — it is NOT per-session state.
+    Callers must never mutate the returned model in place (e.g. via
+    fine_tune_on_feedback); doing so would let one user's Like/Dislike
+    feedback retrain the model everyone else infers with. main() below
+    deep-copies this into st.session_state.model before any fine-tuning
+    happens, so each session fine-tunes its own private copy.
+    """
     if not os.path.exists(MODEL_PATH):
         return None, f"Model file '{MODEL_PATH}' not found. Run `python train_agent.py` first."
     try:
@@ -257,11 +272,7 @@ def get_model():
 
 def get_preference_snapshot(user_prefs: dict) -> tuple[tuple[str, float], ...]:
     """Stable, hashable cache-key input for search results that depend on preferences."""
-    categories = [
-        "Electronics", "Clothing", "Home & Garden",
-        "Sports", "Books", "Toys", "Beauty", "Automotive",
-    ]
-    return tuple((category, get_user_preference(category, user_prefs)) for category in categories)
+    return tuple((category, get_user_preference(category, user_prefs)) for category in CATEGORIES)
 
 
 @st.cache_data(show_spinner=False, ttl=300)
@@ -529,11 +540,7 @@ def render_sidebar(model_loaded: bool) -> None:
 
         # ── Category preferences ───────────────────────────────────────────
         st.markdown("## 🎯 Learned Preferences")
-        categories = [
-            "Electronics", "Clothing", "Home & Garden",
-            "Sports", "Books", "Toys", "Beauty", "Automotive",
-        ]
-        for cat in categories:
+        for cat in CATEGORIES:
             score = get_user_preference(cat, st.session_state.user_prefs)
             st.markdown(
                 f'<div class="pref-bar-wrap">'
@@ -551,14 +558,17 @@ def render_sidebar(model_loaded: bool) -> None:
         serpapi_key = os.environ.get("SERPAPI_KEY", "")
         if serpapi_key:
             st.success("SerpAPI key detected — live search active", icon="🌐")
-            st.session_state.use_mock = False
         else:
             st.info("No SERPAPI_KEY set — using mock data", icon="📦")
-            st.session_state.use_mock = True
 
-        st.session_state.use_mock = st.checkbox(
-            "Force mock data", value=st.session_state.use_mock
-        )
+        # `key="use_mock"` binds this checkbox directly to session_state, so
+        # the checkbox itself is the single source of truth after its
+        # init_session_state default (based on whether SERPAPI_KEY is set).
+        # Previously this block re-forced use_mock to True/False from the
+        # env var on every rerun right before reading the checkbox, which
+        # silently reverted any click on "Force mock data" whenever
+        # SERPAPI_KEY was set.
+        st.checkbox("Force mock data", key="use_mock")
 
         st.caption(
             "Set `SERPAPI_KEY` env var for live Google Shopping results. "
@@ -613,7 +623,12 @@ def main() -> None:
     # ── Load model ─────────────────────────────────────────────────────────
     model, model_err = get_model()
     if model and not st.session_state.model_loaded:
-        st.session_state.model        = model
+        # Deep-copy the cache_resource singleton into session-private state.
+        # get_model() is shared across every visitor's session; fine-tuning
+        # calls model.replay_buffer.add()/model.train() in place, so without
+        # this copy one user's feedback would retrain the model everyone
+        # else infers with the moment they click Like/Dislike.
+        st.session_state.model        = copy.deepcopy(model)
         st.session_state.model_loaded = True
 
     # ── Sidebar ────────────────────────────────────────────────────────────
@@ -662,12 +677,21 @@ def main() -> None:
     )
     chip_cols = st.columns(5)
     suggestions = ["Sony Headphones", "Nike Shoes", "iPhone 15", "MacBook Pro", "Gaming Chair"]
-    chip_query  = None
+
+    def _set_search_query(value: str) -> None:
+        st.session_state.search_query = value
+
+    chip_query = None
     for i, sug in enumerate(suggestions):
         with chip_cols[i]:
-            if st.button(sug, key=f"chip_{i}", use_container_width=True):
+            if st.button(
+                sug,
+                key=f"chip_{i}",
+                use_container_width=True,
+                on_click=_set_search_query,
+                args=(sug,),
+            ):
                 chip_query = sug
-                st.session_state.search_query = sug
 
     # ── Resolve final query ────────────────────────────────────────────────
     final_query = chip_query or (query if search_clicked else "")

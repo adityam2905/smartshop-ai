@@ -199,13 +199,14 @@ class ShoppingEnv(gym.Env):
     ) -> None:
         action_str = {0: "SKIP", 1: "RECOMMEND"}.get(action, "—")
         scam_tag   = "🚨 SCAM" if info["is_scam"] else "✅ LEGIT"
+        reward_str = f"{reward:.2f}" if reward is not None else "—"
         print(
             f"[{info['index']:>4}] {info['product_name'][:40]:<40} "
             f"| {scam_tag} "
             f"| trust={info['site_trust_score']:.2f} "
             f"| disc={info['discount_percentage']:.2f} "
             f"| action={action_str} "
-            f"| reward={reward if reward is not None else '—':>7} "
+            f"| reward={reward_str:>7} "
             f"| {reason}"
         )
 
@@ -256,6 +257,13 @@ class ShoppingEnv(gym.Env):
 
 if __name__ == "__main__":
     import os
+    import sys
+
+    if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+        # _render_human() prints emoji (✅/🚨); on Windows the default
+        # console codepage (cp1252) can't encode them and this script would
+        # crash with a UnicodeEncodeError otherwise.
+        sys.stdout.reconfigure(encoding="utf-8")
 
     # Generate a tiny dataset on-the-fly if the CSV doesn't exist yet
     if not os.path.exists("product_listings.csv"):
