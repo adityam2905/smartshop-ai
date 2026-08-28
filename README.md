@@ -2,8 +2,9 @@
 
 [![CI](https://github.com/adityam2905/smartshop-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/adityam2905/smartshop-ai/actions/workflows/ci.yml)
 
-**🔗 [Live demo](#) — deployed on Streamlit Community Cloud** *(update this
-link once deployed — see [Deployment](#deployment) below)*
+**🔗 [Live demo](https://smartshop-ai.streamlit.app/) — deployed on Streamlit Community Cloud**
+*(free-tier apps sleep after inactivity — if it shows a "waking up" screen,
+give it a minute)*
 
 A full-stack AI application that uses a **Deep Q-Network (DQN)** to evaluate
 live product search results in real time — maximising deals, blocking scams,
@@ -296,8 +297,7 @@ Two things made this possible that weren't true before this pass:
   build is still slow (couldn't verify that specific optimization from
   this environment's network, so it's documented rather than applied).
 
-Once deployed, replace the `#` placeholder in the **Live demo** link at the
-top of this README with the actual `*.streamlit.app` URL.
+Live at **https://smartshop-ai.streamlit.app/**.
 
 ---
 

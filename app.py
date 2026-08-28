@@ -16,7 +16,7 @@ import streamlit as st
 
 # ── Page config — MUST be the first Streamlit call ────────────────────────────
 st.set_page_config(
-    page_title  = "🛍️ AI Deal Hunter",
+    page_title  = "🛍️ SmartShop",
     page_icon   = "🛍️",
     layout      = "wide",
     initial_sidebar_state = "expanded",
@@ -621,7 +621,7 @@ def main() -> None:
 
     # ── Hero header ────────────────────────────────────────────────────────
     st.markdown(
-        '<div class="hero-title">🛍️ AI Deal Hunter</div>'
+        '<div class="hero-title">🛍️ SmartShop</div>'
         '<div class="hero-sub">'
         'A reinforcement-learned agent that finds real deals, blocks scams, '
         'and personalises to <em>your</em> taste in real time.'
