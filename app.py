@@ -312,7 +312,15 @@ def run_agent_inference(model, feature_list: list[dict]) -> tuple[list[dict], li
     scams_caught    = 0
 
     for i, feat in enumerate(feature_list):
-        obs    = features_to_obs(feat).reshape(1, -1)
+        # Pass the unbatched (4,) observation — matching observation_space.shape
+        # exactly — so SB3 treats this as a single, non-vectorized prediction
+        # and squeezes the result back to a real scalar. A batched (1, 4) input
+        # (via .reshape(1, -1)) makes SB3 return a shape-(1,) array instead,
+        # which int() converts inconsistently across numpy versions (a hard
+        # TypeError on newer numpy where this used to just warn) — and it was
+        # already inconsistent with how evaluation.py/bandit_baseline.py call
+        # predict() elsewhere in this codebase.
+        obs = features_to_obs(feat)
         action, _states = model.predict(obs, deterministic=True)
         action = int(action)
 
