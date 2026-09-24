@@ -13,7 +13,7 @@ import os
 import re
 import argparse
 import hashlib
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 from typing import Optional
 import numpy as np
 
@@ -195,6 +195,82 @@ def _extract_domain(url: str) -> str:
     return domain.split(":")[0]
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Seller resolution for live results
+# ─────────────────────────────────────────────────────────────────────────────
+# Google Shopping results don't always link straight to the seller: `link` can
+# be a Google redirect, a google.com/shopping product page, or missing. Scoring
+# that URL would give every live result the same ~0.5–0.6 "unknown .com" trust
+# and make the scam filter useless. So trust is computed on the *seller's*
+# domain, found from the link when possible and from the `source` name
+# ("Flipkart", "Amazon.in", "eBay - seller123") otherwise.
+
+# Normalised seller names that don't reduce to a known domain's first label.
+# Matching is exact on purpose: prefix matching would let a seller called
+# "Amazon Deals Outlet" inherit Amazon's trust.
+_SOURCE_ALIASES = {
+    "bh": "bhphotovideo.com", "bhphoto": "bhphotovideo.com", "bhphotovideo": "bhphotovideo.com",
+    "bhphotovideoaudio": "bhphotovideo.com",
+    "thehomedepot": "homedepot.com", "lowes": "lowes.com", "macys": "macys.com",
+    "reliancedigital": "reliancedigital.in", "tatacliq": "tatacliq.com",
+}
+# Seller name → domain for every retailer in DOMAIN_TRUST_DB ("bestbuy" →
+# "bestbuy.com"). The first entry per brand wins, i.e. the .com site.
+_SOURCE_TO_DOMAIN = {}
+for _d in DOMAIN_TRUST_DB:
+    _SOURCE_TO_DOMAIN.setdefault(_d.split(".")[0], _d)
+_SOURCE_TO_DOMAIN.update(_SOURCE_ALIASES)
+
+# Query parameters Google redirect URLs carry the destination in
+_REDIRECT_PARAMS = ("url", "q", "adurl")
+
+
+def _is_google_domain(domain: str) -> bool:
+    label = _registrable_domain(domain).split(".")[0]
+    return label in {"google", "googleadservices", "googleusercontent"}
+
+
+def _unwrap_redirect(url: str) -> str:
+    """https://www.google.com/url?url=https://seller.com/p → https://seller.com/p"""
+    params = parse_qs(urlparse(url).query)
+    for key in _REDIRECT_PARAMS:
+        for value in params.get(key, []):
+            if value.startswith(("http://", "https://")):
+                return value
+    return url
+
+
+def _source_to_domain(source: str) -> Optional[str]:
+    """Seller name from SerpAPI → domain, or None when it's not a known retailer."""
+    # "eBay - seller123" → "ebay"; "Amazon.com - Seller" → "amazon.com"
+    name = re.split(r"\s+[-–|]\s+", source.strip().lower())[0].strip()
+    if not name:
+        return None
+    # "Amazon.in", "walmart.com", "cheap-amazon.com" — already a domain
+    if re.fullmatch(r"[a-z0-9-]+(\.[a-z0-9-]+)+", name):
+        return name
+    # "Best Buy" → "bestbuy"; "B&H Photo" → "bhphoto"
+    return _SOURCE_TO_DOMAIN.get(re.sub(r"[^a-z0-9]", "", name))
+
+
+def resolve_seller_domain(item: dict) -> str:
+    """
+    The seller's domain for a raw listing, or "" if it can't be determined.
+    Tries the listing's link (unwrapping Google redirects) first, then the
+    `source` seller name.
+    """
+    for key in ("link", "site_url"):
+        url = item.get(key) or ""
+        if not url:
+            continue
+        domain = _extract_domain(url)
+        if _is_google_domain(domain):
+            domain = _extract_domain(_unwrap_redirect(url))
+        if domain and not _is_google_domain(domain):
+            return domain
+    return _source_to_domain(item.get("source") or "") or ""
+
+
 def _registrable_domain(domain: str) -> str:
     """"shop.amazon.co.uk" → "amazon.co.uk", "www.amazon.com" → "amazon.com"."""
     parts = domain.split(".")
@@ -317,8 +393,8 @@ def extract_features(
     normalized_price = float(np.clip(price / market_avg_price, 0.0, 2.0))
 
     # --- discount percentage ---
-    # SerpAPI sometimes provides "old_price" or "was_price"
-    old_price = item.get("old_price") or item.get("was_price")
+    # SerpAPI sometimes provides an old price ("extracted_old_price" is the numeric form)
+    old_price = item.get("extracted_old_price") or item.get("old_price") or item.get("was_price")
     if old_price:
         if isinstance(old_price, str):
             old_price = float(re.sub(r"[^\d.]", "", old_price) or 0)
@@ -332,8 +408,11 @@ def extract_features(
         discount_pct = float(np.clip(1.0 - normalized_price, 0.0, 1.0))
 
     # --- site trust score ---
-    url = item.get("link", "") or item.get("site_url", "")
-    site_trust = compute_domain_trust(url)
+    # Scored on the seller's domain, not whatever `link` points at — see
+    # resolve_seller_domain(). An unidentifiable seller gets the neutral 0.5.
+    url = item.get("link", "") or item.get("product_link", "") or item.get("site_url", "")
+    seller_domain = resolve_seller_domain(item)
+    site_trust = compute_domain_trust(seller_domain)
 
     # --- user preference score ---
     category = item.get("category", "General")
@@ -341,7 +420,7 @@ def extract_features(
 
     # --- metadata ---
     product_name = item.get("title") or item.get("product_name", "Unknown Product")
-    source       = item.get("source", _extract_domain(url))
+    source       = item.get("source") or seller_domain or "Unknown seller"
 
     return {
         # ── model inputs ─────────────────────────────────────────────────────
@@ -354,6 +433,7 @@ def extract_features(
         "price":        price,
         "market_avg":   market_avg_price,
         "site_url":     url,
+        "seller_domain": seller_domain,
         "source":       source,
         "category":     category,
     }

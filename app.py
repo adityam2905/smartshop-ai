@@ -11,7 +11,9 @@ Environment variables (optional):
 """
 
 import copy
+import html
 import os
+from urllib.parse import urlparse
 import streamlit as st
 
 # ── Page config — MUST be the first Streamlit call ────────────────────────────
@@ -427,6 +429,22 @@ def format_price(p: float, currency: str = "$") -> str:
     return f"{currency}{p:,.2f}"
 
 
+# Listing titles, sellers and links come from SerpAPI, i.e. from third-party
+# shops. They're rendered with unsafe_allow_html, so they must be escaped, and
+# only http(s) links allowed — otherwise a listing could inject markup or a
+# javascript: link into the page.
+def safe_text(value) -> str:
+    return html.escape(str(value), quote=True)
+
+
+def safe_url(url: str) -> str:
+    """The URL escaped for an href, or "" if it isn't http(s)."""
+    url = (url or "").strip()
+    if urlparse(url).scheme.lower() not in ("http", "https"):
+        return ""
+    return html.escape(url, quote=True)
+
+
 def render_product_card(feat: dict, idx: int) -> None:
     """Renders a single product card with feedback buttons."""
     item_i   = feat["_item_index"]
@@ -443,7 +461,7 @@ def render_product_card(feat: dict, idx: int) -> None:
 
     # ── Title ──────────────────────────────────────────────────────────────
     st.markdown(
-        f'<div class="product-title">{feat["product_name"]}</div>',
+        f'<div class="product-title">{safe_text(feat["product_name"])}</div>',
         unsafe_allow_html=True,
     )
 
@@ -468,8 +486,8 @@ def render_product_card(feat: dict, idx: int) -> None:
     # ── Meta chips ─────────────────────────────────────────────────────────
     t_cls = trust_class(trust)
     t_lbl = trust_label(trust)
-    cat   = feat.get("category", "General")
-    src   = feat.get("source", "Unknown")
+    cat   = safe_text(feat.get("category", "General"))
+    src   = safe_text(feat.get("source", "Unknown"))
     pref  = feat.get("user_preference_score", 0.5)
 
     st.markdown(
@@ -484,11 +502,13 @@ def render_product_card(feat: dict, idx: int) -> None:
     )
 
     # ── Link ───────────────────────────────────────────────────────────────
-    url = feat.get("site_url", "")
+    url = safe_url(feat.get("site_url", ""))
     if url:
+        # Wrapped in a <div> so Markdown treats the line as a raw HTML block
+        # and doesn't also parse Markdown syntax inside the seller name.
         st.markdown(
-            f'<a href="{url}" target="_blank" style="font-size:0.8rem;color:#60a5fa;">'
-            f'🔗 View on {src}</a>',
+            f'<div><a href="{url}" target="_blank" rel="noopener noreferrer" '
+            f'style="font-size:0.8rem;color:#60a5fa;">🔗 View on {src}</a></div>',
             unsafe_allow_html=True,
         )
 

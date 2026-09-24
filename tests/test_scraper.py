@@ -5,6 +5,7 @@ from scraper import (
     compute_domain_trust,
     extract_features,
     match_mock_set,
+    resolve_seller_domain,
     search_products,
     search_products_detailed,
     update_user_preference,
@@ -218,6 +219,53 @@ def test_unmatched_mock_query_is_reported_as_generic():
     assert search["source"] == "mock"
     assert not search["mock_matched"]
     assert search["fallback_reason"] is None     # mock was requested, not a failure
+
+
+# ── Seller resolution for live results ───────────────────────────────────────
+
+@pytest.mark.parametrize("item, expected", [
+    # Direct link to the seller
+    ({"link": "https://www.flipkart.com/p/1", "source": "Flipkart"}, "flipkart.com"),
+    # Google redirect carrying the seller URL
+    ({"link": "https://www.google.com/url?url=https://www.bestbuy.com/site/1.p&sa=U", "source": "Best Buy"}, "bestbuy.com"),
+    # Google product page, no seller URL → fall back to the seller name
+    ({"link": "https://www.google.com/shopping/product/123", "source": "Walmart"}, "walmart.com"),
+    ({"product_link": "https://www.google.co.in/shopping/product/123", "source": "Flipkart"}, "flipkart.com"),
+    ({"source": "Amazon.in"}, "amazon.in"),
+    ({"source": "Amazon.com - Seller"}, "amazon.com"),
+    ({"source": "eBay - bestdeals123"}, "ebay.com"),
+    ({"source": "B&H Photo-Video-Audio"}, "bhphotovideo.com"),
+    ({"source": "cheap-amazon.com"}, "cheap-amazon.com"),
+    ({"source": "Joe's Corner Store"}, ""),          # unknown seller
+    ({"source": "Amazon Deals Outlet"}, ""),         # brand-like name ≠ the brand
+    ({}, ""),
+])
+def test_resolve_seller_domain(item, expected):
+    assert resolve_seller_domain(item) == expected
+
+
+def test_live_results_are_scored_on_the_seller_not_the_google_link():
+    """
+    Regression test: trust used to be computed from `link`, so every result
+    linking to a Google page got the same "unknown .com" score and the scam
+    filter couldn't tell sellers apart.
+    """
+    google = "https://www.google.com/shopping/product/123"
+    trusted = extract_features({"title": "x", "price": 10, "link": google, "source": "Flipkart"})
+    lookalike = extract_features({"title": "x", "price": 10, "link": google, "source": "cheap-amazon.com"})
+    unknown = extract_features({"title": "x", "price": 10, "link": google, "source": "Joe's Corner Store"})
+
+    assert trusted["site_trust_score"] >= 0.9
+    assert lookalike["site_trust_score"] < 0.3
+    assert unknown["site_trust_score"] == pytest.approx(0.5)
+    # The clickable link is still the one SerpAPI gave
+    assert trusted["site_url"] == google
+
+
+def test_extracted_old_price_is_used_for_the_discount():
+    feat = extract_features({"title": "x", "extracted_price": 60.0, "extracted_old_price": 100.0,
+                             "source": "Walmart"}, market_avg_price=60.0)
+    assert feat["discount_percentage"] == pytest.approx(0.4)
 
 
 # ── Live search fallbacks (SerpAPI faked, no network) ────────────────────────

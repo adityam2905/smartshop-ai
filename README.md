@@ -109,7 +109,11 @@ scorer gives unknown domains.
 
 ### Domain trust
 
-`scraper.py::compute_domain_trust()` scores each listing's URL:
+Trust is scored on the **seller's** domain. Google Shopping results often
+link to a Google page rather than the shop, so `resolve_seller_domain()` unwraps
+Google redirects and otherwise maps the result's seller name ("Flipkart",
+"Amazon.in", "eBay - seller123") to a domain; unknown sellers get a neutral
+0.5. `compute_domain_trust()` then scores that domain:
 
 1. **Known retailers** (Amazon incl. regional sites like `amazon.in`,
    Flipkart, Walmart, Best Buy, …) — matched on the exact registrable domain,
