@@ -1,19 +1,20 @@
 """
-Phase 5: Streamlit UI & Online Learning Loop
-The main application entry point.
+SmartShop — the Streamlit app.
 
-Run with:
     streamlit run app.py
 
-Environment variables (optional):
-    SERPAPI_KEY   — your SerpAPI key for live Google Shopping results
-                    (falls back to rich mock data if not set)
+Optional environment variables / Streamlit secrets:
+    SERPAPI_KEY               live Google Shopping results (otherwise demo listings)
+    SERPAPI_COUNTRY           default country: us, in, uk, ca, au
+    SERPAPI_REFERENCE_PRICES  "1" to look up prices at other stores (costs searches)
 """
 
 import copy
 import html
 import os
+from pathlib import Path
 from urllib.parse import urlparse
+
 import streamlit as st
 
 # ── Page config — MUST be the first Streamlit call ────────────────────────────
@@ -24,207 +25,36 @@ st.set_page_config(
     initial_sidebar_state = "expanded",
 )
 
-# ── Local module imports ───────────────────────────────────────────────────────
-from scraper import (
-    COUNTRIES,
-    DEFAULT_COUNTRY,
-    fetch_mock_results,
-    fetch_serpapi_results,
-    search_products_detailed,
-    features_to_obs,
-    update_user_preference,
-    get_user_preference,
-)
-from train_agent import load_agent, fine_tune_on_feedback
-from reference_prices import fetch_product_stores, fetch_reference_prices
+from smartshop.agent import fine_tune_on_feedback, load_agent
+from smartshop.config import MODEL_PATH, SCAM_TRUST_THRESHOLD
+from smartshop.features import features_to_obs, get_user_preference, update_user_preference
+from smartshop.mock_data import fetch_mock_results
+from smartshop.reference_prices import fetch_product_stores, fetch_reference_prices
+from smartshop.search import COUNTRIES, DEFAULT_COUNTRY, fetch_serpapi_results, search_products_detailed
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Constants
-# ─────────────────────────────────────────────────────────────────────────────
-MODEL_PATH          = "dqn_shopping_agent.zip"
-FEEDBACK_FINETUNE_EVERY  = 3      # fine-tune after every N feedback signals
-LIKE_REWARD         = +20.0
-DISLIKE_REWARD      = -20.0
-LIKE_PREF_DELTA     = +0.05       # how much a Like shifts category preference
-DISLIKE_PREF_DELTA  = -0.05
-SCAM_THRESHOLD      = 0.30
+# ── Settings ─────────────────────────────────────────────────────────────────
+STYLE_PATH = Path(__file__).parent / "assets" / "style.css"
+CATEGORIES = ["Electronics", "Clothing", "Home & Garden", "Sports", "Books", "Toys", "Beauty", "Automotive"]
+SEARCH_RESULT_LIMIT = 12
+
+# 👍 / 👎 learning
+FEEDBACK_FINETUNE_EVERY = 3        # retrain after every N ratings
+LIKE_REWARD, DISLIKE_REWARD = +20.0, -20.0
+LIKE_PREF_DELTA, DISLIKE_PREF_DELTA = +0.05, -0.05   # how much a rating shifts the category preference
 FINETUNE_GRAD_STEPS = 50
-MAX_FEEDBACK_SAMPLES = 200        # most recent feedback kept for fine-tuning
-SEARCH_RESULT_LIMIT  = 12
-LIVE_CACHE_TTL_SECONDS = 6 * 3600   # shopping prices barely move in 6 hours
-MAX_LIVE_SEARCHES_PER_SESSION = 15  # distinct live queries per visitor
-# Reference prices (reference_prices.py) cost one SerpAPI search per product,
-# so they're opt-in: set SERPAPI_REFERENCE_PRICES=1 (env var or Streamlit
-# secret). Each live search then uses up to 1 + MAX_REFERENCE_LOOKUPS searches.
+MAX_FEEDBACK_SAMPLES = 200         # most recent ratings kept for retraining
+
+# SerpAPI quota protection (free plan: 250 searches a month, shared by all visitors)
+LIVE_CACHE_TTL_SECONDS = 6 * 3600          # prices barely move in 6 hours
+MAX_LIVE_SEARCHES_PER_SESSION = 15         # distinct live searches per visitor
+# Prices at other stores cost one extra search per product, so they're opt-in
 REFERENCE_PRICES_ENABLED = os.environ.get("SERPAPI_REFERENCE_PRICES", "").strip().lower() in ("1", "true", "yes")
 MAX_REFERENCE_LOOKUPS_PER_SEARCH = 5
 REFERENCE_CACHE_TTL_SECONDS = 24 * 3600
-CATEGORIES = [
-    "Electronics", "Clothing", "Home & Garden",
-    "Sports", "Books", "Toys", "Beauty", "Automotive",
-]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Custom CSS
-# ─────────────────────────────────────────────────────────────────────────────
 def inject_css() -> None:
-    st.markdown(
-        """
-        <style>
-        /* ── Global ─────────────────────────────────────────── */
-        [data-testid="stAppViewContainer"] {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #f0f0f0;
-        }
-        [data-testid="stSidebar"] {
-            background: rgba(255,255,255,0.04);
-            border-right: 1px solid rgba(255,255,255,0.08);
-        }
-
-        /* ── Hero header ─────────────────────────────────────── */
-        .hero-title {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-align: center;
-            margin-bottom: 0.2rem;
-        }
-        .hero-sub {
-            text-align: center;
-            color: #94a3b8;
-            font-size: 1.05rem;
-            margin-bottom: 2rem;
-        }
-
-        /* ── Product card ────────────────────────────────────── */
-        .product-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.10);
-            border-radius: 16px;
-            padding: 1.4rem 1.6rem;
-            margin-bottom: 1.2rem;
-            transition: border-color 0.2s;
-        }
-        .product-card:hover {
-            border-color: rgba(167,139,250,0.5);
-        }
-        .product-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #e2e8f0;
-            margin-bottom: 0.5rem;
-        }
-        .price-row {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            margin-bottom: 0.7rem;
-        }
-        .price-current {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #34d399;
-        }
-        .price-was {
-            font-size: 0.9rem;
-            color: #64748b;
-            text-decoration: line-through;
-        }
-        .discount-badge {
-            background: #ef4444;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 700;
-        }
-
-        /* ── Trust / confidence bars ─────────────────────────── */
-        .meta-row {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 0.8rem;
-            font-size: 0.82rem;
-            color: #94a3b8;
-        }
-        .meta-chip {
-            background: rgba(255,255,255,0.07);
-            border-radius: 8px;
-            padding: 2px 10px;
-        }
-        .trust-high  { color: #34d399; }
-        .trust-med   { color: #fbbf24; }
-        .trust-low   { color: #f87171; }
-
-        /* ── Feedback buttons ────────────────────────────────── */
-        div[data-testid="column"] button {
-            border-radius: 50px !important;
-            font-weight: 600 !important;
-            width: 100% !important;
-        }
-
-        /* ── Stats bar at the top ────────────────────────────── */
-        .stats-bar {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            background: rgba(255,255,255,0.04);
-            border-radius: 12px;
-            padding: 0.8rem 1.5rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.88rem;
-        }
-        .stat-item { text-align: center; }
-        .stat-val  { font-size: 1.4rem; font-weight: 800; color: #a78bfa; }
-        .stat-lbl  { color: #64748b; font-size: 0.75rem; }
-
-        /* ── Sidebar metric cards ────────────────────────────── */
-        .pref-bar-wrap { margin-bottom: 0.4rem; }
-        .pref-bar-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            color: #94a3b8;
-            margin-bottom: 2px;
-        }
-
-        /* ── Empty state ─────────────────────────────────────── */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #64748b;
-        }
-        .empty-icon { font-size: 4rem; margin-bottom: 1rem; }
-
-        /* ── Scam warning card ───────────────────────────────── */
-        .scam-card {
-            background: rgba(239,68,68,0.08);
-            border: 1px solid rgba(239,68,68,0.3);
-            border-radius: 12px;
-            padding: 0.8rem 1.2rem;
-            margin-bottom: 0.8rem;
-            font-size: 0.85rem;
-            color: #fca5a5;
-        }
-
-        /* ── Toast-like feedback confirm ─────────────────────── */
-        .feedback-toast {
-            background: rgba(52,211,153,0.12);
-            border: 1px solid rgba(52,211,153,0.35);
-            border-radius: 10px;
-            padding: 0.5rem 1rem;
-            font-size: 0.82rem;
-            color: #6ee7b7;
-            margin-top: 0.4rem;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"<style>{STYLE_PATH.read_text(encoding='utf-8')}</style>", unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -235,7 +65,7 @@ def init_session_state() -> None:
         "model":              None,       # loaded DQN
         "model_loaded":       False,
         "search_query":       "",
-        "search_results":     [],         # list of feature dicts from scraper
+        "search_results":     [],         # feature dicts for the current search
         "recommendations":    [],         # subset where agent chose Action 1
         "skipped_count":      0,
         "scams_caught_last_search": 0,
@@ -251,14 +81,10 @@ def init_session_state() -> None:
         "live_queries_used":  set(),      # (query, country) pairs fetched live this session
         "fine_tune_count":    0,          # how many times we've fine-tuned
         "just_fine_tuned":    False,      # show the "retrained" toast once
-        "agent_confidence":   {},         # item_index → q-value spread (optional display)
         "toast":              {},         # {item_index: "like"/"dislike"} for UI feedback
         "use_mock":           not bool(os.environ.get("SERPAPI_KEY", "")),
-        # Per-category preference scores for THIS browser session only.
-        # Scoped here (not in a module-level dict in scraper.py) so that two
-        # people using the same deployed app never see each other's taste
-        # bleed into their results — see scraper.py's "User preference
-        # store" section for the bug this replaced.
+        # Category preferences for THIS browser session only, so one visitor's
+        # taste never leaks into anyone else's results.
         "user_prefs":         {},
     }
     for key, val in defaults.items():
@@ -267,7 +93,7 @@ def init_session_state() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Model loading (cached so it only loads once per session)
+# Model loading (once per server process, shared by every visitor)
 # ─────────────────────────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def get_model():
@@ -282,8 +108,8 @@ def get_model():
     deep-copies this into st.session_state.model before any fine-tuning
     happens, so each session fine-tunes its own private copy.
     """
-    if not os.path.exists(MODEL_PATH):
-        return None, f"Model file '{MODEL_PATH}' not found. Run `python train_agent.py` first."
+    if not MODEL_PATH.exists():
+        return None, f"No trained model at {MODEL_PATH}."
     try:
         model = load_agent(MODEL_PATH)
         return model, None
@@ -363,7 +189,7 @@ def run_agent_inference(model, feature_list: list[dict]) -> tuple[list[dict], li
     Returns:
         recommendations  — items where action == 1 (Recommend)
         skipped          — items where action == 0 (Skip)
-        scams_caught     — count of items filtered due to trust < SCAM_THRESHOLD
+        scams_caught     — count of items blocked for trust < SCAM_TRUST_THRESHOLD
     """
     recommendations = []
     skipped         = []
@@ -387,7 +213,7 @@ def run_agent_inference(model, feature_list: list[dict]) -> tuple[list[dict], li
         feat["_item_index"] = i
 
         # Hard override: never recommend a known scam (trust < threshold)
-        is_scam_domain = feat["site_trust_score"] < SCAM_THRESHOLD
+        is_scam_domain = feat["site_trust_score"] < SCAM_TRUST_THRESHOLD
         if is_scam_domain:
             scams_caught += 1
             feat["_scam_flag"] = True
@@ -595,7 +421,7 @@ def render_sidebar(model_loaded: bool) -> None:
             st.success("DQN model loaded", icon="✅")
         else:
             st.error("Model not found", icon="❌")
-            st.caption(f"Run `python train_agent.py` to generate `{MODEL_PATH}`")
+            st.caption("Run `python -m smartshop.train` to create it.")
 
         st.divider()
 
@@ -744,11 +570,9 @@ def main() -> None:
     # ── Load model ─────────────────────────────────────────────────────────
     model, model_err = get_model()
     if model and not st.session_state.model_loaded:
-        # Deep-copy the cache_resource singleton into session-private state.
-        # get_model() is shared across every visitor's session; fine-tuning
-        # calls model.replay_buffer.add()/model.train() in place, so without
-        # this copy one user's feedback would retrain the model everyone
-        # else infers with the moment they click Like/Dislike.
+        # get_model() is shared by every visitor; 👍/👎 retraining changes the
+        # model in place, so each session works on its own copy — otherwise
+        # one visitor's ratings would change the model for everyone.
         st.session_state.model        = copy.deepcopy(model)
         st.session_state.model_loaded = True
 
@@ -771,8 +595,8 @@ def main() -> None:
             f"⚠️ **Model not loaded:** {model_err}\n\n"
             "Run the following commands first:\n"
             "```bash\n"
-            "python data_generator.py\n"
-            "python train_agent.py --timesteps 100000\n"
+            "python -m smartshop.data_generator\n"
+            "python -m smartshop.train\n"
             "```",
             icon="🤖",
         )
@@ -882,9 +706,8 @@ def main() -> None:
                 render_product_card(feat, idx=i)
 
     elif st.session_state.search_results:
-        # Agent filtered everything
-        scams   = st.session_state.scams_caught
-        skipped = st.session_state.skipped_count
+        # Nothing worth recommending in this search
+        scams = st.session_state.scams_caught_last_search
         st.markdown(
             '<div class="empty-state">'
             '<div class="empty-icon">🤖</div>'

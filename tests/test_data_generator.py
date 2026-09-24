@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from data_generator import generate_dataset
+from smartshop.data_generator import generate_dataset
 
 
 @pytest.fixture(scope="module")

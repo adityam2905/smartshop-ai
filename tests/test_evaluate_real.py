@@ -9,11 +9,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from collect_real_listings import KEPT_FIELDS, label_rows, slugify, trim_result
-from evaluate_real import (
+from experiments.collect_real_listings import KEPT_FIELDS, label_rows, slugify, trim_result
+from experiments.evaluate_real import (
     featurize, load_labels, parse_label, policies, score_decisions, wilson_interval,
 )
-from scraper import fetch_mock_results
+from smartshop.mock_data import fetch_mock_results
 
 
 @pytest.fixture

@@ -1,39 +1,25 @@
 """
-Contextual-bandit baseline for the Deal Hunter problem.
+A simpler learning model to compare the DQN against: a linear contextual bandit.
 
-Why this file exists
----------------------
-ShoppingEnv is framed as a sequential Gymnasium environment and trained
-with a DQN, but look closely at shopping_env.step(): the reward for a given
-product depends only on that product's own features and the action taken
-on it, and the *next* observation (the next product in the shuffled order)
-does not depend on the action just taken. There is no credit assignment
-across time — every "episode" is really a sequence of independent one-shot
-decisions with a context (the 4 product features) attached to each one.
+Each listing's reward depends only on that listing and the action, and
+skipping one doesn't change the next — so this is a contextual bandit, not a
+true sequential problem. If a one-layer bandit (no replay buffer, target
+network or discounting) did as well as the DQN, the extra machinery wouldn't
+be earning its keep. Both are scored with the same smartshop.evaluation.
 
-That is a contextual bandit problem, not a true MDP. Full DQN machinery
-(a replay buffer, a target network, a discount factor) isn't obviously
-buying anything over a much simpler per-decision learner, so this module
-implements one and benchmarks it against the trained DQN using the exact
-same evaluation harness (evaluation.evaluate_policy) — see README.md's
-"Bandit vs. DQN" section for how to read the results.
-
-Usage:
-    python bandit_baseline.py                       # train + evaluate the bandit alone
-    python bandit_baseline.py --compare-dqn          # also compare against dqn_shopping_agent.zip
-    python bandit_baseline.py --train-episodes 100 --episodes 30 --compare-dqn
+    python -m experiments.bandit_baseline
+    python -m experiments.bandit_baseline --compare-dqn
 """
 
 import argparse
-import os
 from typing import Optional
 
 import numpy as np
 
-from shopping_env import ShoppingEnv
-from evaluation import evaluate_policy
-
-CSV_PATH = "product_listings.csv"
+from smartshop.config import DATA_CSV, MODEL_PATH
+from smartshop.data_generator import ensure_dataset
+from smartshop.environment import ShoppingEnv
+from smartshop.evaluation import evaluate_policy
 
 
 class LinearEpsilonGreedyBandit:
@@ -93,13 +79,13 @@ class LinearEpsilonGreedyBandit:
 
 
 def train_bandit(
-    csv_path: str = CSV_PATH,
+    csv_path=DATA_CSV,
     n_episodes: int = 60,
     lr: float = 0.05,
     seed: int = 0,
 ) -> LinearEpsilonGreedyBandit:
     """Trains a fresh bandit by walking the dataset `n_episodes` times."""
-    env = ShoppingEnv(csv_path=csv_path, render_mode=None)
+    env = ShoppingEnv(csv_path=csv_path)
     bandit = LinearEpsilonGreedyBandit(
         n_actions=env.action_space.n,
         n_features=env.observation_space.shape[0],
@@ -153,16 +139,11 @@ def main() -> None:
     parser.add_argument("--episodes", type=int, default=20,
                         help="Evaluation episodes for both policies (default: 20)")
     parser.add_argument("--lr", type=float, default=0.05, help="Bandit learning rate")
-    parser.add_argument("--csv", type=str, default=CSV_PATH)
+    parser.add_argument("--csv", default=DATA_CSV)
     parser.add_argument("--compare-dqn", action="store_true",
-                        help="Also load dqn_shopping_agent.zip and print a side-by-side comparison")
+                        help="Also score the trained DQN and print a side-by-side comparison")
     args = parser.parse_args()
-
-    if not os.path.exists(args.csv):
-        print(f"'{args.csv}' not found — generating synthetic data first…")
-        from data_generator import generate_dataset
-        generate_dataset(n=5000).to_csv(args.csv, index=False)
-        print(f"Generated '{args.csv}'.\n")
+    ensure_dataset(args.csv)
 
     print(f"Training linear epsilon-greedy bandit for {args.train_episodes} episodes…")
     bandit = train_bandit(csv_path=args.csv, n_episodes=args.train_episodes, lr=args.lr)
@@ -175,12 +156,11 @@ def main() -> None:
     )
 
     if args.compare_dqn:
-        model_path = "dqn_shopping_agent.zip"
-        if not os.path.exists(model_path):
-            print(f"\n(no {model_path} found — run train_agent.py first to enable --compare-dqn)")
+        if not MODEL_PATH.exists():
+            print(f"\n(no model at {MODEL_PATH} — run `python -m smartshop.train` first)")
             return
-        from train_agent import load_agent
-        model = load_agent(model_path)
+        from smartshop.agent import load_agent      # needs torch, so only imported when used
+        model = load_agent()
         dqn_metrics = evaluate_policy(
             lambda obs: int(model.predict(obs, deterministic=True)[0]),
             csv_path=args.csv,

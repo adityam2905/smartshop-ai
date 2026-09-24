@@ -1,21 +1,17 @@
 """
-Checks the committed dqn_shopping_agent.zip against agent_config.py without
+Checks the committed dqn_shopping_agent.zip against smartshop/config.py without
 needing torch / stable-baselines3 (the zip's `data` member is plain JSON).
 
 Regression test: the live demo once shipped a model trained with a different
-learning rate, gamma, batch size and network size than train_agent.py and
-the README documented.
+learning rate, gamma, batch size and network size than the ones documented.
 """
 
 import json
 import zipfile
-from pathlib import Path
 
 import pytest
 
-from agent_config import DQN_HYPERPARAMS
-
-MODEL_ZIP = Path(__file__).resolve().parent.parent / "dqn_shopping_agent.zip"
+from smartshop.config import DQN_HYPERPARAMS, MODEL_PATH
 
 CHECKED_KEYS = [
     "learning_rate", "buffer_size", "learning_starts", "batch_size", "tau",
@@ -26,7 +22,7 @@ CHECKED_KEYS = [
 
 @pytest.fixture(scope="module")
 def saved_params() -> dict:
-    with zipfile.ZipFile(MODEL_ZIP) as zf:
+    with zipfile.ZipFile(MODEL_PATH) as zf:
         return json.loads(zf.read("data"))
 
 
@@ -34,8 +30,8 @@ def saved_params() -> dict:
 def test_committed_model_matches_training_config(saved_params, key):
     assert saved_params[key] == pytest.approx(DQN_HYPERPARAMS[key]), (
         f"dqn_shopping_agent.zip was trained with {key}={saved_params[key]}, "
-        f"but agent_config.py says {DQN_HYPERPARAMS[key]} — retrain with "
-        "`python train_agent.py` and commit the new zip."
+        f"but smartshop/config.py says {DQN_HYPERPARAMS[key]} — retrain with "
+        "`python -m smartshop.train` and commit the new zip."
     )
 
 

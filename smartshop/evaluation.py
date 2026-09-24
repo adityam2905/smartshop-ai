@@ -1,21 +1,17 @@
 """
-Shared evaluation harness.
+Scores any policy — the DQN, a baseline, a simple rule — the same way: run it
+over the synthetic listings and count what it got right and wrong.
 
-Both the DQN (train_agent.py) and the contextual-bandit baseline
-(bandit_baseline.py) get scored by rolling the same kind of policy —
-something that maps an observation to an action — through ShoppingEnv and
-tallying the same metrics. Previously that rollout/scoring logic was
-duplicated inline in train_agent.py; pulling it out here means both policies
-are held to identical, single-source-of-truth scoring, and a new policy
-(a supervised classifier, a rule-based one, etc.) can be benchmarked the
-same way just by handing it a `predict_fn`.
+A policy is just a function from an observation (4 floats) to an action
+(0 = Skip, 1 = Recommend).
 """
 
 from typing import Callable, Dict
 
 import numpy as np
 
-from shopping_env import ShoppingEnv
+from .config import DATA_CSV
+from .environment import ShoppingEnv
 
 # obs (shape (4,)) -> action (0 = Skip, 1 = Recommend)
 PredictFn = Callable[[np.ndarray], int]
@@ -23,7 +19,7 @@ PredictFn = Callable[[np.ndarray], int]
 
 def evaluate_policy(
     predict_fn: PredictFn,
-    csv_path: str = "product_listings.csv",
+    csv_path=DATA_CSV,
     n_episodes: int = 20,
     verbose: bool = True,
     label: str = "Policy",
@@ -32,7 +28,7 @@ def evaluate_policy(
     Rolls out `predict_fn` deterministically (no exploration) for
     `n_episodes` full passes over the dataset and returns a metrics dict.
     """
-    env = ShoppingEnv(csv_path=csv_path, render_mode=None)
+    env = ShoppingEnv(csv_path=csv_path)
 
     # reward_reason prefix (see ShoppingEnv._compute_reward) → metric
     outcomes = {

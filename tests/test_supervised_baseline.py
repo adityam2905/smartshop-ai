@@ -1,6 +1,6 @@
 import numpy as np
 
-from supervised_baseline import load_data, score, FEATURES
+from experiments.supervised_baseline import load_data, score, FEATURES
 
 
 def test_load_data_returns_the_shared_feature_columns(tiny_csv):

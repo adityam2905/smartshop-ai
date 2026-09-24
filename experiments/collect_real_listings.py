@@ -10,25 +10,24 @@ The labelling sheet deliberately does NOT show the model's decisions or the
 trust score, so they can't bias the labels.
 
 Usage (needs SERPAPI_KEY; spends one search per new query):
-    python collect_real_listings.py                 # India, default queries
-    python collect_real_listings.py --country us
-    python collect_real_listings.py --per-query 10
+    python -m experiments.collect_real_listings                # India, default queries
+    python -m experiments.collect_real_listings --country us
 """
 
 import argparse
 import json
-import os
 import re
 import sys
 from datetime import date
 
 import pandas as pd
 
-from scraper import COUNTRIES, DEFAULT_COUNTRY, SERPAPI_AVAILABLE, SERPAPI_KEY, fetch_serpapi_results
+from smartshop import search
+from smartshop.config import REAL_DATA_DIR
+from smartshop.search import COUNTRIES, DEFAULT_COUNTRY, fetch_serpapi_results
 
-DATA_DIR   = "real_data"
-RAW_DIR    = os.path.join(DATA_DIR, "raw")
-LABELS_CSV = os.path.join(DATA_DIR, "labels.csv")
+RAW_DIR    = REAL_DATA_DIR / "raw"
+LABELS_CSV = REAL_DATA_DIR / "labels.csv"
 
 # A spread of categories and price points. The last three tend to surface
 # replica / counterfeit sellers — real scams are otherwise rare on Google
@@ -105,14 +104,14 @@ def main() -> None:
     parser.add_argument("--num", type=int, default=40, help="Results requested per search")
     args = parser.parse_args()
 
-    if not (SERPAPI_AVAILABLE and SERPAPI_KEY):
+    if not (search.SERPAPI_AVAILABLE and search.SERPAPI_KEY):
         sys.exit("Needs SERPAPI_KEY set and `pip install google-search-results`.")
 
-    os.makedirs(RAW_DIR, exist_ok=True)
-    labels = pd.read_csv(LABELS_CSV, dtype=str).fillna("") if os.path.exists(LABELS_CSV) \
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
+    labels = pd.read_csv(LABELS_CSV, dtype=str).fillna("") if LABELS_CSV.exists() \
         else pd.DataFrame(columns=LABEL_COLUMNS)
 
-    todo = [q for q in QUERIES if not os.path.exists(os.path.join(RAW_DIR, slugify(q, args.country) + ".json"))]
+    todo = [q for q in QUERIES if not (RAW_DIR / f"{slugify(q, args.country)}.json").exists()]
     print(f"{len(QUERIES) - len(todo)} queries already saved; {len(todo)} to fetch "
           f"(= {len(todo)} SerpAPI searches).")
 
@@ -129,7 +128,7 @@ def main() -> None:
 
         trimmed = [trim_result(r) for r in results]
         slug = slugify(query, args.country)
-        with open(os.path.join(RAW_DIR, slug + ".json"), "w", encoding="utf-8") as f:
+        with open(RAW_DIR / f"{slug}.json", "w", encoding="utf-8") as f:
             json.dump({"query": query, "country": args.country, "collected": date.today().isoformat(),
                        "results": trimmed}, f, ensure_ascii=False, indent=1)
         new_rows += label_rows(query, args.country, trimmed, args.per_query)

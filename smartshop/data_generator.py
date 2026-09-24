@@ -1,6 +1,7 @@
 """
-Phase 1: Synthetic Data Generator
-Generates 5,000 product listings with scam/legit labels.
+Synthetic training data: product listings labelled scam / legit.
+
+    python -m smartshop.data_generator        # writes data/product_listings.csv
 
 Each listing has two independent price signals, as in live results:
   * normalized_price     — the real price ÷ the market price (< 1 is cheap,
@@ -17,12 +18,13 @@ and is built so that no single feature decides the label:
     "too good to be true" pattern the trust < 0.3 hard rule can't catch.
 """
 
-import pandas as pd
-import numpy as np
 import random
+from pathlib import Path
 
-random.seed(42)
-np.random.seed(42)
+import numpy as np
+import pandas as pd
+
+from .config import DATA_CSV
 
 CATEGORIES = ["Electronics", "Clothing", "Home & Garden", "Sports", "Books", "Toys", "Beauty", "Automotive"]
 
@@ -208,7 +210,10 @@ def compute_user_preference_score(category: str) -> float:
     return round(float(np.clip(base + noise, 0.0, 1.0)), 4)
 
 
-def generate_dataset(n: int = 5000, scam_ratio: float = 0.25) -> pd.DataFrame:
+def generate_dataset(n: int = 5000, scam_ratio: float = 0.25, seed: int = 42) -> pd.DataFrame:
+    """n listings, `scam_ratio` of them scams. The same seed always gives the same data."""
+    random.seed(seed)
+    np.random.seed(seed)
     records = []
     n_scam = int(n * scam_ratio)
     n_legit = n - n_scam
@@ -245,25 +250,22 @@ def generate_dataset(n: int = 5000, scam_ratio: float = 0.25) -> pd.DataFrame:
     return df[cols]
 
 
+def ensure_dataset(path=DATA_CSV):
+    """Generate the training data at `path` if it isn't there yet; returns the path."""
+    path = Path(path)
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        generate_dataset().to_csv(path, index=False)
+        print(f"Generated synthetic data at {path}")
+    return path
+
+
+def main() -> None:
+    df = generate_dataset()
+    DATA_CSV.parent.mkdir(exist_ok=True)
+    df.to_csv(DATA_CSV, index=False)
+    print(f"Saved {len(df):,} listings ({df['is_scam'].mean():.0%} scams) to {DATA_CSV}")
+
+
 if __name__ == "__main__":
-    import sys
-    if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
-        # Console prints below use non-ASCII characters (→); on Windows the
-        # default console codepage (cp1252) can't encode them and this
-        # script would crash with a UnicodeEncodeError otherwise.
-        sys.stdout.reconfigure(encoding="utf-8")
-
-    print("Generating synthetic dataset...")
-    df = generate_dataset(n=5000, scam_ratio=0.25)
-    df.to_csv("product_listings.csv", index=False)
-
-    print(f"Dataset saved → product_listings.csv")
-    print(f"Total rows    : {len(df)}")
-    print(f"Scam listings : {df['is_scam'].sum()} ({df['is_scam'].mean()*100:.1f}%)")
-    print(f"Legit listings: {(~df['is_scam']).sum()}")
-    print("\nSample rows:")
-    print(df[["product_name", "normalized_price", "discount_percentage",
-              "site_trust_score", "user_preference_score", "is_scam"]].head(10).to_string())
-    print("\nFeature statistics:")
-    print(df[["normalized_price", "discount_percentage",
-              "site_trust_score", "user_preference_score"]].describe().round(3))
+    main()

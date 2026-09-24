@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from shopping_env import ShoppingEnv
+from smartshop.environment import ShoppingEnv
 
 
 def test_observation_and_action_spaces(tiny_csv):
@@ -23,7 +23,7 @@ def test_missing_required_column_raises(tmp_path):
 def test_reward_function_matrix(tiny_csv):
     """
     Exercises all four cells of the reward table described in the README
-    and shopping_env.py's docstring: Recommend/Skip crossed with Scam/Legit.
+    and smartshop/environment.py's docstring: Recommend/Skip crossed with Scam/Legit.
     """
     env = ShoppingEnv(csv_path=tiny_csv)
     env.reset(seed=0)
@@ -118,18 +118,3 @@ def test_reset_shuffles_deterministically_per_seed(tiny_csv):
     env.reset(seed=42)
     order_b = env._order.copy()
     assert (order_a == order_b).all()
-
-
-def test_features_to_obs_clips_out_of_range_values():
-    obs = ShoppingEnv.features_to_obs({
-        "normalized_price": 5.0,      # should clip to 2.0
-        "discount_percentage": -1.0,  # should clip to 0.0
-        "site_trust_score": 2.0,      # should clip to 1.0
-        "user_preference_score": 0.5,
-    })
-    assert obs == pytest.approx(np.array([2.0, 0.0, 1.0, 0.5]))
-
-
-def test_features_to_obs_defaults_missing_keys():
-    obs = ShoppingEnv.features_to_obs({})
-    assert obs == pytest.approx(np.array([1.0, 0.0, 0.5, 0.5]))

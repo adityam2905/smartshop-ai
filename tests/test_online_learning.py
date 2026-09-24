@@ -1,21 +1,17 @@
 """
 Behavioural tests for the committed DQN and the app's online-learning loop.
 
-Needs the full requirements.txt (torch + stable-baselines3); skipped under
-the lean requirements-test.txt used in CI.
+Needs torch + stable-baselines3: skipped in CI's lean job, run in its test-full job.
 """
 
 import copy
-from pathlib import Path
 
 import numpy as np
 import pytest
 
 pytest.importorskip("stable_baselines3")
 
-from train_agent import fine_tune_on_feedback, load_agent  # noqa: E402
-
-MODEL_ZIP = Path(__file__).resolve().parent.parent / "dqn_shopping_agent.zip"
+from smartshop.agent import fine_tune_on_feedback, load_agent  # noqa: E402
 
 RECOMMEND, SKIP = 1, 0
 
@@ -38,7 +34,7 @@ AT_MARKET_LOVED        = np.array([1.00, 0.00, 0.95, 1.0], dtype=np.float32)
 
 @pytest.fixture(scope="module")
 def pretrained():
-    return load_agent(str(MODEL_ZIP))
+    return load_agent()
 
 
 @pytest.fixture
@@ -116,7 +112,7 @@ def test_repeated_dislikes_flip_that_item_but_do_not_collapse_the_policy(model, 
 
     assert act(model, TRUSTED_SMALL_DISCOUNT) == SKIP
     # Unrelated listings keep their decisions. (A near-identical listing —
-    # e.g. a small shop at 0.68× vs the disliked 0.65× — may flip too; that's
+    # e.g. a small shop at 0.72× vs the disliked 0.75× — may flip too; that's
     # the dislike generalising, not the policy collapsing.)
     assert act(model, TRUSTED_BIG_DISCOUNT) == RECOMMEND
     assert act(model, MID_TIER_DEAL) == RECOMMEND

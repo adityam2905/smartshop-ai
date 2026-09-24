@@ -1,0 +1,151 @@
+/* SmartShop app styles — loaded by app.py */
+
+/* ── Global ─────────────────────────────────────────── */
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #f0f0f0;
+}
+[data-testid="stSidebar"] {
+    background: rgba(255,255,255,0.04);
+    border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ── Hero header ─────────────────────────────────────── */
+.hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 0.2rem;
+}
+.hero-sub {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+}
+
+/* ── Product card ────────────────────────────────────── */
+.product-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 16px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1.2rem;
+    transition: border-color 0.2s;
+}
+.product-card:hover {
+    border-color: rgba(167,139,250,0.5);
+}
+.product-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 0.5rem;
+}
+.price-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.7rem;
+}
+.price-current {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #34d399;
+}
+.price-was {
+    font-size: 0.9rem;
+    color: #64748b;
+    text-decoration: line-through;
+}
+.discount-badge {
+    background: #ef4444;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+/* ── Trust / confidence bars ─────────────────────────── */
+.meta-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+    font-size: 0.82rem;
+    color: #94a3b8;
+}
+.meta-chip {
+    background: rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 2px 10px;
+}
+.trust-high  { color: #34d399; }
+.trust-med   { color: #fbbf24; }
+.trust-low   { color: #f87171; }
+
+/* ── Feedback buttons ────────────────────────────────── */
+div[data-testid="column"] button {
+    border-radius: 50px !important;
+    font-weight: 600 !important;
+    width: 100% !important;
+}
+
+/* ── Stats bar at the top ────────────────────────────── */
+.stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 0.8rem 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+}
+.stat-item { text-align: center; }
+.stat-val  { font-size: 1.4rem; font-weight: 800; color: #a78bfa; }
+.stat-lbl  { color: #64748b; font-size: 0.75rem; }
+
+/* ── Sidebar metric cards ────────────────────────────── */
+.pref-bar-wrap { margin-bottom: 0.4rem; }
+.pref-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 2px;
+}
+
+/* ── Empty state ─────────────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #64748b;
+}
+.empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+
+/* ── Scam warning card ───────────────────────────────── */
+.scam-card {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    color: #fca5a5;
+}
+
+/* ── Toast-like feedback confirm ─────────────────────── */
+.feedback-toast {
+    background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.35);
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+    color: #6ee7b7;
+    margin-top: 0.4rem;
+}

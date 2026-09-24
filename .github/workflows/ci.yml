@@ -22,17 +22,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
 
-      # Deliberately installs only requirements-test.txt, not the full
-      # requirements.txt (torch + stable-baselines3 + streamlit) — the unit
-      # tests exercise shopping_env.py, scraper.py, evaluation.py,
-      # bandit_baseline.py, and supervised_baseline.py, none of which need
-      # the DQN/UI stack. Keeps CI fast instead of pulling in a
-      # multi-hundred-MB torch install.
+      # Only requirements-test.txt: everything except the trained model
+      # (smartshop/agent.py, train.py) and the Streamlit app runs without
+      # torch / stable-baselines3 / streamlit, and skipping them keeps this
+      # job fast. The test-full job below covers the rest.
       - name: Install test dependencies
         run: pip install -r requirements-test.txt
 
       - name: Generate a synthetic dataset (also serves as a smoke test)
-        run: python data_generator.py
+        run: python -m smartshop.data_generator
 
       - name: Run test suite
         run: pytest -v
@@ -42,10 +40,10 @@ jobs:
       # generated dataset — catches breakage the unit tests wouldn't (CLI
       # arg handling, file I/O, a stray import, etc).
       - name: Smoke-test the contextual bandit baseline
-        run: python bandit_baseline.py --train-episodes 5 --episodes 3
+        run: python -m experiments.bandit_baseline --train-episodes 5 --episodes 3
 
       - name: Smoke-test the supervised baseline
-        run: python supervised_baseline.py
+        run: python -m experiments.supervised_baseline
 
   # The full suite, including the tests the lean job skips: the committed
   # model's behaviour, the online-learning loop, and HTML escaping in app.py.
@@ -69,7 +67,7 @@ jobs:
         run: pip install -r requirements.txt -r requirements-test.txt
 
       - name: Generate a synthetic dataset
-        run: python data_generator.py
+        run: python -m smartshop.data_generator
 
       - name: Run full test suite (nothing skipped)
         run: pytest -v -rs

@@ -14,26 +14,27 @@ The target for each listing is should_recommend = legit AND good_deal.
 Everything runs offline from the saved files — no SerpAPI searches.
 
 Usage:
-    python evaluate_real.py
-    python evaluate_real.py --show-errors 30
+    python -m experiments.evaluate_real
+    python -m experiments.evaluate_real --show-errors 30
 """
 
 import argparse
 import json
 import math
-import os
 import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from reference_prices import load_reference_cache
-from scraper import estimate_market_references, extract_features, features_to_obs
-from shopping_env import ShoppingEnv
+from smartshop.config import MODEL_PATH, REAL_DATA_DIR
+from smartshop.environment import ShoppingEnv
+from smartshop.features import extract_features, features_to_obs
+from smartshop.pricing import estimate_market_references
+from smartshop.reference_prices import load_reference_cache
 
-DATA_DIR   = "real_data"
-RAW_DIR    = os.path.join(DATA_DIR, "raw")
-LABELS_CSV = os.path.join(DATA_DIR, "labels.csv")
+RAW_DIR    = REAL_DATA_DIR / "raw"
+LABELS_CSV = REAL_DATA_DIR / "labels.csv"
 SCAM_THRESHOLD = ShoppingEnv.SCAM_TRUST_THRESHOLD
 
 _TRUE  = {"1", "1.0", "y", "yes", "true"}
@@ -78,15 +79,15 @@ def load_labels(labels_csv: str = LABELS_CSV) -> tuple[pd.DataFrame, dict]:
 def featurize(labels: pd.DataFrame, raw_dir: str = RAW_DIR, references: dict | None = None) -> pd.DataFrame:
     """
     Adds the four model features per row, computed the same way app.py does.
-    `references` maps listing id → {"reference": price, …} from
-    reference_prices.py's cache; listings without one fall back to the
+    `references` maps listing id → {"reference": price, …} from the cache
+    built by experiments/fetch_reference_prices.py; listings without one fall back to the
     in-search estimate, exactly as the app does when a reference is missing.
     """
     references = references or {}
     feats = []
     for (query, country), group in labels.groupby(["query", "country"], sort=False):
         slug = group["id"].iloc[0].rsplit("_", 1)[0]
-        with open(os.path.join(raw_dir, slug + ".json"), encoding="utf-8") as f:
+        with open(Path(raw_dir) / f"{slug}.json", encoding="utf-8") as f:
             results = json.load(f)["results"]
         ref_prices = [None] * len(results)
         for _, row in group.iterrows():
@@ -161,7 +162,7 @@ def _ci(ci: tuple[float, float]) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate on real, hand-labelled listings.")
     parser.add_argument("--labels", default=LABELS_CSV)
-    parser.add_argument("--model", default="dqn_shopping_agent.zip")
+    parser.add_argument("--model", default=MODEL_PATH)
     parser.add_argument("--show-errors", type=int, default=15,
                         help="How many of the DQN's wrong decisions to list")
     parser.add_argument("--no-references", action="store_true",
@@ -176,7 +177,7 @@ def main() -> None:
     n_ref = int((data["market_basis"] == "other stores, same product").sum())
     obs = [features_to_obs(row) for _, row in data.iterrows()]
 
-    from train_agent import load_agent
+    from smartshop.agent import load_agent      # needs torch, so only imported when used
     model = load_agent(args.model)
 
     print("\n" + "=" * 96)

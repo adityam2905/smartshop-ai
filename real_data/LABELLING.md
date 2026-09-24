@@ -51,4 +51,4 @@ than *other refurbished* units, not just cheaper than new.
 - Use `notes` for anything odd ("price is for the case, not the phone").
 - ~150 rows takes about 45–60 minutes; sellers repeat, so it speeds up.
 
-When done: `python evaluate_real.py`
+When done: `python -m experiments.evaluate_real`

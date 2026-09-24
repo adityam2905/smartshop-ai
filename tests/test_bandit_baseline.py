@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from bandit_baseline import LinearEpsilonGreedyBandit, train_bandit
-from evaluation import evaluate_policy
+from experiments.bandit_baseline import LinearEpsilonGreedyBandit, train_bandit
+from smartshop.evaluation import evaluate_policy
 
 
 def test_epsilon_decays_from_start_to_floor():

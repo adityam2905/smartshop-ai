@@ -1,26 +1,12 @@
 """
-Supervised baseline for scam detection.
+Scam detection as a plain classification problem: how do Logistic Regression
+and a Random Forest, trained on the same 4 features the DQN sees, compare with
+the app's hard rule (block sellers with trust < 0.3)?
 
-bandit_baseline.py asks whether the RL framing (contextual bandit vs. DQN)
-is buying anything on the full *policy* task (Recommend/Skip, which mixes
-"is this a scam" with "is this deal good enough to bother showing"). This
-module asks a narrower, arguably more load-bearing question: on just the
-safety-critical sub-task -- "is this listing a scam?" -- how does a plain
-supervised classifier, trained directly on the `is_scam` label, compare to:
-
-  (a) the hard-coded `site_trust_score < 0.3` rule that app.py actually
-      applies in production (see run_agent_inference() in app.py), and
-  (b) how well the DQN/bandit end up avoiding scams as a *side effect* of
-      reward maximisation (their scam_avoid_rate / scam_slip_rate from
-      evaluation.py).
-
-Usage:
-    python supervised_baseline.py
-    python supervised_baseline.py --test-size 0.3 --seed 0
+    python -m experiments.supervised_baseline
 """
 
 import argparse
-import os
 from typing import Tuple
 
 import numpy as np
@@ -36,16 +22,17 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 
-from shopping_env import ShoppingEnv
+from smartshop.config import DATA_CSV
+from smartshop.data_generator import ensure_dataset
+from smartshop.environment import ShoppingEnv
 
-CSV_PATH = "product_listings.csv"
 # Reuse the exact same 4 columns the RL agent observes, so this is a fair
 # apples-to-apples comparison rather than a classifier given extra info.
 FEATURES = ShoppingEnv.STATE_COLS
-TRUST_RULE_THRESHOLD = ShoppingEnv.SCAM_TRUST_THRESHOLD  # 0.3, matches app.py's hard filter
+TRUST_RULE_THRESHOLD = ShoppingEnv.SCAM_TRUST_THRESHOLD   # the app's hard block
 
 
-def load_data(csv_path: str = CSV_PATH) -> Tuple[pd.DataFrame, pd.Series]:
+def load_data(csv_path=DATA_CSV) -> Tuple[pd.DataFrame, pd.Series]:
     df = pd.read_csv(csv_path)
     return df[FEATURES], df["is_scam"].astype(int)
 
@@ -76,16 +63,12 @@ def print_report(metrics: dict) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Supervised scam-detection baselines.")
-    parser.add_argument("--csv", default=CSV_PATH)
+    parser.add_argument("--csv", default=DATA_CSV)
     parser.add_argument("--test-size", type=float, default=0.25)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    if not os.path.exists(args.csv):
-        print(f"'{args.csv}' not found — generating synthetic data first…")
-        from data_generator import generate_dataset
-        generate_dataset(n=5000).to_csv(args.csv, index=False)
-        print(f"Generated '{args.csv}'.\n")
+    ensure_dataset(args.csv)
 
     X, y = load_data(args.csv)
     X_train, X_test, y_train, y_test = train_test_split(

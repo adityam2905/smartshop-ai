@@ -2,8 +2,8 @@
 
 import pytest
 
-from reference_prices import _find_listing, _product_ids, fetch_reference_prices, reference_from_stores
-from scraper import estimate_market_references
+from smartshop.pricing import estimate_market_references
+from smartshop.reference_prices import fetch_reference_prices, find_listing, product_ids, reference_from_stores
 
 STORES = [
     {"name": "Amazon.in", "price": 29990.0, "link": "https://www.amazon.in/dp/1"},
@@ -64,5 +64,5 @@ def test_listing_is_found_again_by_any_shared_google_id():
         {"title": "Other", "product_id": "999", "immersive_product_page_token": "x"},
         {"title": "Sony WH-1000XM5 Headphones", "product_id": "333", "immersive_product_page_token": "y"},
     ]
-    assert _product_ids(saved) == {"111", "222", "333"}
-    assert _find_listing(saved, "Amazon.in", fresh)["immersive_product_page_token"] == "y"
+    assert product_ids(saved) == {"111", "222", "333"}
+    assert find_listing(saved, "Amazon.in", fresh)["immersive_product_page_token"] == "y"
