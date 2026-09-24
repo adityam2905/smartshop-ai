@@ -236,6 +236,9 @@ def test_unmatched_mock_query_is_reported_as_generic():
     ({"source": "eBay - bestdeals123"}, "ebay.com"),
     ({"source": "B&H Photo-Video-Audio"}, "bhphotovideo.com"),
     ({"source": "cheap-amazon.com"}, "cheap-amazon.com"),
+    # Seller names seen in real Google Shopping India results
+    ({"source": "EMI Snapmint"}, "snapmint.com"),
+    ({"source": "ubuy.co.in"}, "ubuy.co.in"),
     ({"source": "Joe's Corner Store"}, ""),          # unknown seller
     ({"source": "Amazon Deals Outlet"}, ""),         # brand-like name ≠ the brand
     ({}, ""),

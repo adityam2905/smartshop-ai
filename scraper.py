@@ -93,6 +93,13 @@ DOMAIN_TRUST_DB: dict[str, float] = {
     "jiomart.com":        0.90,
     "nykaa.com":          0.90,
     "ajio.com":           0.89,
+    "vijaysales.com":     0.90,
+    "poorvika.com":       0.88,
+    "sangeethamobiles.com": 0.88,
+    "cashify.in":         0.82,     # refurbished marketplace
+    "snapmint.com":       0.80,     # EMI / buy-now-pay-later storefront
+    "desertcart.in":      0.75,     # cross-border importers — legit, but
+    "ubuy.co.in":         0.75,     # third-party imported stock
     "snapdeal.com":       0.75,
     "meesho.com":         0.75,
 
@@ -213,6 +220,7 @@ _SOURCE_ALIASES = {
     "bhphotovideoaudio": "bhphotovideo.com",
     "thehomedepot": "homedepot.com", "lowes": "lowes.com", "macys": "macys.com",
     "reliancedigital": "reliancedigital.in", "tatacliq": "tatacliq.com",
+    "emisnapmint": "snapmint.com",              # Google Shopping shows "EMI Snapmint"
 }
 # Seller name → domain for every retailer in DOMAIN_TRUST_DB ("bestbuy" →
 # "bestbuy.com"). The first entry per brand wins, i.e. the .com site.
@@ -696,17 +704,19 @@ if __name__ == "__main__":
         print(f"Live search unavailable: {search['fallback_reason']}")
     print()
 
-    print(f"{'#':<4} {'Product':<45} {'Price':>7} {'Disc%':>6} {'Trust':>6} {'UserPref':>9} {'URL'}")
-    print("-" * 110)
+    # Seller name and the domain trust was scored on — the columns to check
+    # when a live result's trust looks wrong (unrecognised sellers show "?").
+    print(f"{'#':<4} {'Product':<38} {'Price':>12} {'Disc%':>7} {'Trust':>6}   {'Seller':<26} {'Scored as'}")
+    print("-" * 120)
     for i, feat in enumerate(products, 1):
-        name  = feat["product_name"][:43]
-        price = feat["price"]
-        disc  = feat["discount_percentage"]
-        trust = feat["site_trust_score"]
-        pref  = feat["user_preference_score"]
-        url   = feat["site_url"][:35]
-        flag  = "🚨" if trust < 0.3 else "✅"
-        print(f"{i:<4} {name:<45} {feat['currency']}{price:>6.2f} {disc:>6.2%} {trust:>6.2f} {pref:>9.2f} {flag} {url}")
+        name   = feat["product_name"][:36]
+        price  = f"{feat['currency']}{feat['price']:,.0f}"
+        disc   = feat["discount_percentage"]
+        trust  = feat["site_trust_score"]
+        seller = str(feat["source"])[:26]
+        scored = feat["seller_domain"] or "?"
+        flag   = "🚨" if trust < 0.3 else "✅"
+        print(f"{i:<4} {name:<38} {price:>12} {disc:>7.1%} {trust:>6.2f} {flag} {seller:<26} {scored}")
 
     print(f"\n{len(products)} products processed.\n")
     print("Tip: pass these feature dicts to ShoppingEnv.features_to_obs(f) "

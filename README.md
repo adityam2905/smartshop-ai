@@ -5,9 +5,10 @@
 **🔗 [Live demo](https://smartshop-ai.streamlit.app/)** — Streamlit Community Cloud
 *(free-tier apps sleep when idle — give it a minute to wake up)*
 
-A Streamlit app where a **Deep Q-Network (DQN)** screens product search
-results: it recommends good deals, blocks scam sites, and adapts to your
-👍 / 👎 feedback during the session.
+A Streamlit app where a **Deep Q-Network (DQN)** screens live Google Shopping
+results: it recommends listings from trustworthy sellers, blocks scam and
+look-alike sites, ranks deals by discount, and adapts to your 👍 / 👎 feedback
+during the session.
 
 See [Limitations](#limitations) for where the RL framing is doing more work
 than the problem needs.
@@ -44,7 +45,8 @@ python train_agent.py --timesteps 100000 --eval    # saves dqn_shopping_agent.zi
 streamlit run app.py                               # uses mock data unless SERPAPI_KEY is set
 
 # Optional
-python scraper.py "Sony Headphones" --mock         # inspect engineered features
+python scraper.py "Sony Headphones" --mock         # features, seller and trust per listing
+python scraper.py "iPhone 15" --country in         # same, live (needs SERPAPI_KEY)
 python bandit_baseline.py --compare-dqn            # baselines, see below
 python supervised_baseline.py
 ```
@@ -65,9 +67,12 @@ pip install -r requirements-test.txt && pytest -v    # lean: no torch, runs in C
 pip install -r requirements.txt && pytest -v         # also runs model + online-learning tests
 ```
 
-`tests/test_online_learning.py` needs torch, so CI skips it — run it locally
-after retraining. `tests/test_model_artifact.py` runs in CI and fails if the
-committed model wasn't trained with the settings in `agent_config.py`.
+115 tests. `tests/test_online_learning.py` (model behaviour, fine-tuning) and
+`tests/test_app_rendering.py` (HTML escaping) need torch/Streamlit, so CI
+skips them — run them locally after retraining or touching `app.py`.
+`tests/test_model_artifact.py` runs in CI and fails if the committed model
+wasn't trained with the settings in `agent_config.py`. Live search is tested
+against a faked SerpAPI, so no key or network is needed.
 
 ---
 
@@ -109,21 +114,24 @@ scorer gives unknown domains.
 
 ### Domain trust
 
-Trust is scored on the **seller's** domain. Google Shopping results often
+Trust is scored on the **seller's** domain. Live Google Shopping results
 link to a Google page rather than the shop, so `resolve_seller_domain()` unwraps
 Google redirects and otherwise maps the result's seller name ("Flipkart",
-"Amazon.in", "eBay - seller123") to a domain; unknown sellers get a neutral
-0.5. `compute_domain_trust()` then scores that domain:
+"Amazon.in", "EMI Snapmint", "eBay - seller123") to a domain. Unknown sellers
+get a neutral 0.5. `compute_domain_trust()` then scores that domain:
 
-1. **Known retailers** (Amazon incl. regional sites like `amazon.in`,
-   Flipkart, Walmart, Best Buy, …) — matched on the exact registrable domain,
-   so `smile.amazon.com` counts but `cheap-amazon.com` doesn't.
+1. **Known retailers** — major US/UK retailers, Amazon's regional sites, and
+   Indian retailers (Flipkart, Croma, Reliance Digital, Vijay Sales, Cashify,
+   …). Matched on the exact registrable domain, so `smile.amazon.com` counts
+   but `cheap-amazon.com` doesn't.
 2. **Look-alikes** — a domain using a known brand name without being that
    brand (`cheap-amazon.com`, `amaz0n.com`, `flipkartsale.shop`) scores ~0.10.
 3. **Everything else** — heuristics on TLD (`.xyz`, `.tk`, … score low) and
    scammy keywords (`deal`, `cheap`, `mega`, …).
 
 `app.py` hard-blocks anything with trust < 0.3 before the DQN is consulted.
+Listing titles, seller names and links come from third-party shops, so they
+are HTML-escaped and only `http(s)` links are rendered.
 
 ### Online learning
 
@@ -161,8 +169,9 @@ construction, so a classifier has nothing to add.
 ## Deployment
 
 Hosted on [Streamlit Community Cloud](https://share.streamlit.io) from `main`
-with main file `app.py`. No secrets are needed; add `SERPAPI_KEY` under
-**Settings → Secrets** for live results.
+with main file `app.py`. No secrets are needed; add `SERPAPI_KEY` (and
+optionally `SERPAPI_COUNTRY = "in"`) under **Settings → Secrets** for live
+results.
 
 - **Updating the model:** retrain, commit `dqn_shopping_agent.zip`, push,
   then **Reboot app** from the dashboard. The model is held in
@@ -176,15 +185,24 @@ with main file `app.py`. No secrets are needed; add `SERPAPI_KEY` under
 ## Limitations
 
 1. **It's a contextual bandit framed as an MDP** — see [Baselines](#baselines).
-2. **Scam blocking is mostly a rule.** The trust < 0.3 hard filter runs
-   before the DQN, and trust comes from a hand-built heuristic. It has known
-   gaps: a scam-styled `.net` domain can score just above 0.3
-   (`test_dot_net_scam_domain_is_not_reliably_flagged`).
-3. **The synthetic data is still easy.** Trust separates scam (< 0.28) from
+2. **The agent doesn't judge deal quality.** Recommending any legit listing
+   earns ≥ 0 and skipping it costs -5, so the optimal policy is "recommend
+   everything that isn't a scam"; the training data has no overpriced legit
+   listings to learn otherwise. "Best deals first" is a sort by discount.
+   The pretrained model also ignores `user_preference_score`, which never
+   affects the training reward — personalisation comes only from fine-tuning.
+3. **Scam blocking is mostly a rule.** The trust < 0.3 hard filter runs
+   before the DQN, and trust comes from a hand-built heuristic. Known gaps:
+   a scam-styled `.net` domain can score just above 0.3
+   (`test_dot_net_scam_domain_is_not_reliably_flagged`), and an unknown
+   seller with an implausible price isn't flagged — a live search returned a
+   refurbished iPhone 15 from an unknown shop at ₹18,499 while Cashify listed
+   it at ₹44,399, and it would be recommended.
+4. **The synthetic data is still easy.** Trust separates scam (< 0.28) from
    legit (≥ 0.40) perfectly, which is why every model scores ~100%. Real
    listings, or scams with mid-range trust, would be a real benchmark.
-4. **Preferences are in-memory** and reset when the session ends.
-5. **Live search shares one quota.** Every visitor to the public demo uses
+5. **Preferences are in-memory** and reset when the session ends.
+6. **Live search shares one quota.** Every visitor to the public demo uses
    the same 100 searches/month; once they run out, everyone gets demo data
    (with a warning) until the quota resets.
 
@@ -201,6 +219,14 @@ with main file `app.py`. No secrets are needed; add `SERPAPI_KEY` under
   low-trust scams at 5–20% off.
 - **Look-alike domains:** `endswith("amazon.com")` gave `cheap-amazon.com`
   full trust, while `amazon.in` and Flipkart were unknown.
+- **Live trust was meaningless:** it was scored on the result's link, which
+  for Google Shopping is a Google page, so every live seller got the same
+  score. Now scored on the seller (see [Domain trust](#domain-trust)).
+- **Silent fallback to demo data:** failed live searches (including SerpAPI's
+  "out of searches" response, which isn't an exception) quietly showed mock
+  listings. The app now shows why.
+- **Unescaped listing HTML:** third-party titles and links were inserted into
+  the page as raw HTML.
 - **Shared state across users:** one visitor's feedback retrained the model
   everyone used, and preferences leaked between sessions.
 - **Stale search cache:** preference changes didn't invalidate cached results.
