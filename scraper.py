@@ -27,6 +27,20 @@ except ImportError:
 # ── Config ────────────────────────────────────────────────────────────────────
 SERPAPI_KEY = os.environ.get("SERPAPI_KEY", "")   # set this env var with your key
 
+# Google Shopping country (SerpAPI `gl` code) → (display name, currency symbol).
+# Live prices come back in the local currency, so the symbol follows the country.
+COUNTRIES: dict[str, tuple[str, str]] = {
+    "us": ("United States",  "$"),
+    "in": ("India",          "₹"),
+    "uk": ("United Kingdom", "£"),
+    "ca": ("Canada",         "CA$"),
+    "au": ("Australia",      "A$"),
+}
+DEFAULT_COUNTRY = os.environ.get("SERPAPI_COUNTRY", "us").lower()
+if DEFAULT_COUNTRY not in COUNTRIES:
+    DEFAULT_COUNTRY = "us"
+MOCK_CURRENCY = "$"                                 # mock listings are priced in USD
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Domain Trust Score Database
 # Maps known domains to a pre-computed trust score.
@@ -378,6 +392,29 @@ _MOCK_PRODUCTS = {
         {"title": "FAKE NIKE ULTRA SALE 95% OFF",                   "extracted_price":   4.99,                      "link": "https://bestprice-deals.tk/nike",        "source": "bestprice-deals.tk", "category": "Clothing"},
         {"title": "Nike Pegasus 40 Running Shoes",                  "extracted_price": 120.00, "old_price": 130.00, "link": "https://www.nordstrom.com/s/nike-peg",   "source": "Nordstrom", "category": "Clothing"},
     ],
+    "iPhone 15": [
+        {"title": "Apple iPhone 15 128GB",                          "extracted_price": 699.00, "old_price": 799.00, "link": "https://www.apple.com/shop/buy-iphone/iphone-15", "source": "Apple", "category": "Electronics"},
+        {"title": "iPhone 15 128GB Unlocked",                       "extracted_price": 649.99, "old_price": 729.99, "link": "https://www.bestbuy.com/site/6525421.p",  "source": "Best Buy", "category": "Electronics"},
+        {"title": "Apple iPhone 15 128GB (Renewed Premium)",        "extracted_price": 469.00, "old_price": 729.00, "link": "https://www.amazon.com/dp/B0CMPXFKQY",   "source": "Amazon",   "category": "Electronics"},
+        {"title": "iPhone 15 128GB Black",                          "extracted_price": 629.00,                      "link": "https://www.walmart.com/ip/5044438434",   "source": "Walmart",  "category": "Electronics"},
+        {"title": "iPhone 15 Pro Max 256GB — 85% OFF CLEARANCE",    "extracted_price": 119.00,                      "link": "https://apple-outlet-store.com/iphone15", "source": "apple-outlet-store.com", "category": "Electronics"},
+        {"title": "iPhone 15 Wholesale Lot — Limited Stock",        "extracted_price":  89.99,                      "link": "https://phonedeals-mega.top/iphone",      "source": "phonedeals-mega.top", "category": "Electronics"},
+    ],
+    "MacBook Pro": [
+        {"title": "Apple MacBook Pro 14\" M3 8GB/512GB",            "extracted_price": 1399.00, "old_price": 1599.00, "link": "https://www.bestbuy.com/site/6534615.p", "source": "Best Buy", "category": "Electronics"},
+        {"title": "Apple MacBook Pro 14\" M3 (2023)",               "extracted_price": 1299.00, "old_price": 1599.00, "link": "https://www.amazon.com/dp/B0CM5JV268",  "source": "Amazon",   "category": "Electronics"},
+        {"title": "Apple MacBook Pro 16\" M3 Pro 18GB/512GB",       "extracted_price": 2299.00, "old_price": 2499.00, "link": "https://www.bhphotovideo.com/c/product/1793636", "source": "B&H Photo", "category": "Electronics"},
+        {"title": "Apple MacBook Pro 13\" M1 (Renewed)",            "extracted_price":  479.00, "old_price": 1299.00, "link": "https://www.amazon.com/dp/B08N5LNQCX",  "source": "Amazon",   "category": "Electronics"},
+        {"title": "MacBook Pro M3 — 90% OFF TODAY ONLY",            "extracted_price":  159.99,                       "link": "https://macbook-sale.xyz/m3",           "source": "macbook-sale.xyz", "category": "Electronics"},
+        {"title": "Apple MacBook Pro 14 M3 Sealed",                 "extracted_price":  399.00,                       "link": "https://amazon-deals-outlet.net/mbp",   "source": "amazon-deals-outlet.net", "category": "Electronics"},
+    ],
+    "Gaming Chair": [
+        {"title": "Corsair T3 Rush Gaming Chair",                   "extracted_price": 299.99, "old_price": 349.99, "link": "https://www.bestbuy.com/site/6509960.p",  "source": "Best Buy", "category": "Home & Garden"},
+        {"title": "GTRACING Gaming Chair with Footrest",            "extracted_price": 139.99, "old_price": 199.99, "link": "https://www.amazon.com/dp/B07R6WN6ZJ",   "source": "Amazon",   "category": "Home & Garden"},
+        {"title": "Respawn 110 Racing Style Gaming Chair",          "extracted_price": 159.00,                      "link": "https://www.walmart.com/ip/55446452",     "source": "Walmart",  "category": "Home & Garden"},
+        {"title": "DXRacer Formula Series Gaming Chair",            "extracted_price": 199.00, "old_price": 349.00, "link": "https://www.newegg.com/p/N82E16811996101", "source": "Newegg", "category": "Home & Garden"},
+        {"title": "Pro Gaming Chair 95% OFF — Last 3 In Stock",     "extracted_price":  14.99,                      "link": "https://chair-flashsale.icu/pro",         "source": "chair-flashsale.icu", "category": "Home & Garden"},
+    ],
     "default": [
         {"title": "Product A - Great Deal",                         "extracted_price":  49.99, "old_price":  79.99, "link": "https://www.amazon.com/dp/XXXXXXXXXX",   "source": "Amazon",   "category": "General"},
         {"title": "Product B - Standard Price",                     "extracted_price":  89.00,                      "link": "https://www.walmart.com/ip/123456789",   "source": "Walmart",  "category": "General"},
@@ -386,54 +423,84 @@ _MOCK_PRODUCTS = {
     ],
 }
 
+# Words that route a query to a mock set, so "iphone", "sony wh-1000xm5" or
+# "office chair" find the right listings instead of the generic default.
+_MOCK_KEYWORDS = {
+    "Sony Headphones": ["sony", "headphone"],
+    "Nike Shoes":      ["nike", "shoe", "sneaker"],
+    "iPhone 15":       ["iphone"],
+    "MacBook Pro":     ["macbook", "laptop"],
+    "Gaming Chair":    ["chair"],
+}
+
+
+def match_mock_set(query: str) -> Optional[str]:
+    """Name of the mock set a query maps to, or None if only the generic default fits."""
+    q = query.lower()
+    for name, keywords in _MOCK_KEYWORDS.items():
+        if any(kw in q for kw in keywords):
+            return name
+    return None
+
+
 def fetch_mock_results(query: str) -> list[dict]:
     """Returns realistic mock search results (mix of legit + scam)."""
-    # Try to match the query to a mock category
-    for keyword, products in _MOCK_PRODUCTS.items():
-        if keyword.lower() in query.lower():
-            return products
-    return _MOCK_PRODUCTS["default"]
+    return _MOCK_PRODUCTS[match_mock_set(query) or "default"]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SerpAPI fetcher
 # ─────────────────────────────────────────────────────────────────────────────
 
-def fetch_serpapi_results(query: str, num_results: int = 10) -> list[dict]:
+def _redact_key(message: str) -> str:
+    """Network errors can echo the request URL, api_key included — never surface it."""
+    return message.replace(SERPAPI_KEY, "***") if SERPAPI_KEY else message
+
+
+def fetch_serpapi_results(
+    query: str, num_results: int = 10, country: str = DEFAULT_COUNTRY
+) -> tuple[list[dict], Optional[str]]:
     """
-    Fetches Google Shopping results from SerpAPI.
-    Falls back to mock data on any error.
+    Fetches Google Shopping results from SerpAPI for the given country code
+    (a key of COUNTRIES).
+
+    Returns (raw_results, fallback_reason). On any problem it falls back to
+    mock data and says why in `fallback_reason`, so the UI can tell the user
+    instead of silently showing demo listings; the reason is None when the
+    results are live.
     """
     if not SERPAPI_AVAILABLE:
-        print("[scraper] google-search-results not installed → using mock data.")
-        return fetch_mock_results(query)
+        reason = "the SerpAPI client (google-search-results) isn't installed"
+    elif not SERPAPI_KEY:
+        reason = "no SERPAPI_KEY is set"
+    else:
+        try:
+            params = {
+                "engine":    "google_shopping",
+                "q":         query,
+                "api_key":   SERPAPI_KEY,
+                "num":       num_results,
+                "gl":        country,
+                "hl":        "en",
+            }
+            results  = GoogleSearch(params).get_dict()
+            shopping = results.get("shopping_results", [])
 
-    if not SERPAPI_KEY:
-        print("[scraper] SERPAPI_KEY env var not set → using mock data.")
-        return fetch_mock_results(query)
+            if results.get("error"):
+                # e.g. "Your account has run out of searches." or an invalid key
+                reason = f"SerpAPI error: {results['error']}"
+            elif not shopping:
+                reason = f"SerpAPI found no shopping results for '{query}'"
+            else:
+                print(f"[scraper] SerpAPI returned {len(shopping)} results for '{query}' ({country}).")
+                return shopping[:num_results], None
 
-    try:
-        params = {
-            "engine":    "google_shopping",
-            "q":         query,
-            "api_key":   SERPAPI_KEY,
-            "num":       num_results,
-            "gl":        "us",
-            "hl":        "en",
-        }
-        results  = GoogleSearch(params).get_dict()
-        shopping = results.get("shopping_results", [])
+        except Exception as exc:
+            reason = f"SerpAPI request failed: {exc}"
 
-        if not shopping:
-            print("[scraper] SerpAPI returned no results → using mock data.")
-            return fetch_mock_results(query)
-
-        print(f"[scraper] SerpAPI returned {len(shopping)} results for '{query}'.")
-        return shopping[:num_results]
-
-    except Exception as exc:
-        print(f"[scraper] SerpAPI error: {exc} → using mock data.")
-        return fetch_mock_results(query)
+    reason = _redact_key(reason)
+    print(f"[scraper] {reason} → using mock data.")
+    return fetch_mock_results(query), reason
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -445,13 +512,25 @@ def search_products(
     use_mock: bool = False,
     num_results: int = 10,
     user_prefs: Optional[dict] = None,
+    country: str = DEFAULT_COUNTRY,
 ) -> list[dict]:
+    """Feature dicts for a query — see search_products_detailed()."""
+    return search_products_detailed(query, use_mock, num_results, user_prefs, country)["results"]
+
+
+def search_products_detailed(
+    query: str,
+    use_mock: bool = False,
+    num_results: int = 10,
+    user_prefs: Optional[dict] = None,
+    country: str = DEFAULT_COUNTRY,
+) -> dict:
     """
     Main entry point for app.py.
 
     1. Fetches raw results (SerpAPI or mock).
     2. Runs feature engineering on every item.
-    3. Returns a list of feature dicts ready for model.predict().
+    3. Reports where the results came from.
 
     Args:
         query:       User search string (e.g. "Sony Headphones").
@@ -459,14 +538,26 @@ def search_products(
         num_results: Max number of listings to return.
         user_prefs:  Caller's session-scoped preference dict, forwarded to
                      extract_features() so results reflect the right user.
+        country:     Google Shopping country code (a key of COUNTRIES).
 
     Returns:
-        List of feature dicts (see extract_features() for schema).
+        {
+            "results":         list of feature dicts (see extract_features()),
+                               each with a "currency" symbol added,
+            "source":          "live" or "mock",
+            "fallback_reason": why live search wasn't used, or None if it was
+                               or mock data was requested,
+            "mock_matched":    False when mock data had no listings for this
+                               query and the generic default set was used,
+        }
     """
+    fallback_reason = None
     if use_mock:
         raw_results = fetch_mock_results(query)
     else:
-        raw_results = fetch_serpapi_results(query, num_results)
+        raw_results, fallback_reason = fetch_serpapi_results(query, num_results, country)
+    is_live = not use_mock and fallback_reason is None
+    currency = COUNTRIES.get(country, COUNTRIES[DEFAULT_COUNTRY])[1] if is_live else MOCK_CURRENCY
 
     # Estimate a market average price from the batch
     prices = []
@@ -484,11 +575,17 @@ def search_products(
     for item in raw_results:
         try:
             features = extract_features(item, market_avg_price=market_avg, user_prefs=user_prefs)
+            features["currency"] = currency
             feature_list.append(features)
         except Exception as exc:
             print(f"[scraper] Skipping item due to feature error: {exc}")
 
-    return feature_list
+    return {
+        "results":         feature_list,
+        "source":          "live" if is_live else "mock",
+        "fallback_reason": fallback_reason,
+        "mock_matched":    is_live or match_mock_set(query) is not None,
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -508,10 +605,16 @@ if __name__ == "__main__":
                         help="Product search query")
     parser.add_argument("--mock", action="store_true",
                         help="Force mock data (no API call)")
+    parser.add_argument("--country", default=DEFAULT_COUNTRY, choices=sorted(COUNTRIES),
+                        help=f"Google Shopping country (default: {DEFAULT_COUNTRY})")
     args = parser.parse_args()
 
-    print(f"\nSearching for: '{args.query}' {'[MOCK]' if args.mock else '[LIVE]'}\n")
-    products = search_products(args.query, use_mock=args.mock)
+    search = search_products_detailed(args.query, use_mock=args.mock, country=args.country)
+    products = search["results"]
+    print(f"\nSearching for: '{args.query}' [{search['source'].upper()}]")
+    if search["fallback_reason"]:
+        print(f"Live search unavailable: {search['fallback_reason']}")
+    print()
 
     print(f"{'#':<4} {'Product':<45} {'Price':>7} {'Disc%':>6} {'Trust':>6} {'UserPref':>9} {'URL'}")
     print("-" * 110)
@@ -523,7 +626,7 @@ if __name__ == "__main__":
         pref  = feat["user_preference_score"]
         url   = feat["site_url"][:35]
         flag  = "🚨" if trust < 0.3 else "✅"
-        print(f"{i:<4} {name:<45} ${price:>6.2f} {disc:>6.2%} {trust:>6.2f} {pref:>9.2f} {flag} {url}")
+        print(f"{i:<4} {name:<45} {feat['currency']}{price:>6.2f} {disc:>6.2%} {trust:>6.2f} {pref:>9.2f} {flag} {url}")
 
     print(f"\n{len(products)} products processed.\n")
     print("Tip: pass these feature dicts to ShoppingEnv.features_to_obs(f) "

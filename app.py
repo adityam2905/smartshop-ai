@@ -24,7 +24,9 @@ st.set_page_config(
 
 # ── Local module imports ───────────────────────────────────────────────────────
 from scraper import (
-    search_products,
+    COUNTRIES,
+    DEFAULT_COUNTRY,
+    search_products_detailed,
     features_to_obs,
     update_user_preference,
     get_user_preference,
@@ -228,7 +230,11 @@ def init_session_state() -> None:
         "feedback_counts":    {"like": 0, "dislike": 0},
         "scams_caught":       0,          # items agent filtered with trust < 0.3
         "total_searches":     0,
-        "last_query":         "",
+        "last_search_key":    None,       # (query, use_mock, country) of the last search
+        "search_source":      None,       # "live" / "mock" for the current results
+        "fallback_reason":    None,       # why live search fell back to mock, if it did
+        "mock_matched":       True,       # False → mock had no listings for the query
+        "country":            DEFAULT_COUNTRY,   # bound to the sidebar selectbox
         "fine_tune_count":    0,          # how many times we've fine-tuned
         "just_fine_tuned":    False,      # show the "retrained" toast once
         "agent_confidence":   {},         # item_index → q-value spread (optional display)
@@ -281,9 +287,10 @@ def cached_search(
     query: str,
     use_mock: bool,
     num_results: int,
+    country: str,
     pref_snapshot: tuple[tuple[str, float], ...],
     _user_prefs: dict,
-) -> list[dict]:
+) -> dict:
     # `pref_snapshot` (a hashable tuple) IS part of the cache key, so a
     # Like/Dislike that changes preferences invalidates stale cached results.
     # `_user_prefs` starts with an underscore, which tells Streamlit to skip
@@ -294,7 +301,9 @@ def cached_search(
     # Streamlit silently excluded it from the cache key despite the comment
     # claiming otherwise — preference changes were not invalidating the
     # cache. Renaming it to `pref_snapshot` here fixes that.
-    return search_products(query, use_mock=use_mock, num_results=num_results, user_prefs=_user_prefs)
+    return search_products_detailed(
+        query, use_mock=use_mock, num_results=num_results, user_prefs=_user_prefs, country=country,
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -414,8 +423,8 @@ def discount_label(disc: float) -> str:
     pct = int(disc * 100)
     return f"-{pct}%" if pct > 0 else ""
 
-def format_price(p: float) -> str:
-    return f"${p:,.2f}"
+def format_price(p: float, currency: str = "$") -> str:
+    return f"{currency}{p:,.2f}"
 
 
 def render_product_card(feat: dict, idx: int) -> None:
@@ -427,6 +436,7 @@ def render_product_card(feat: dict, idx: int) -> None:
     trust    = feat["site_trust_score"]
     price    = feat["price"]
     mkt      = feat.get("market_avg", 0)
+    currency = feat.get("currency", "$")
     disc_lbl = discount_label(disc_pct)
 
     st.markdown('<div class="product-card">', unsafe_allow_html=True)
@@ -439,7 +449,7 @@ def render_product_card(feat: dict, idx: int) -> None:
 
     # ── Price row ──────────────────────────────────────────────────────────
     was_html = (
-        f'<span class="price-was">was {format_price(mkt)}</span>'
+        f'<span class="price-was">was {format_price(mkt, currency)}</span>'
         if mkt and mkt > price * 1.05
         else ""
     )
@@ -449,7 +459,7 @@ def render_product_card(feat: dict, idx: int) -> None:
     )
     st.markdown(
         f'<div class="price-row">'
-        f'  <span class="price-current">{format_price(price)}</span>'
+        f'  <span class="price-current">{format_price(price, currency)}</span>'
         f'  {was_html}{badge_html}'
         f'</div>',
         unsafe_allow_html=True,
@@ -580,6 +590,18 @@ def render_sidebar(model_loaded: bool) -> None:
         # SERPAPI_KEY was set.
         st.checkbox("Force mock data", key="use_mock")
 
+        # Bound via key= with its default set in init_session_state, so the
+        # selectbox is the single source of truth (see the use_mock note above).
+        st.selectbox(
+            "Shopping country",
+            options=list(COUNTRIES),
+            format_func=lambda code: COUNTRIES[code][0],
+            key="country",
+            disabled=st.session_state.use_mock,
+            help="Which country's Google Shopping results to search (live search only). "
+                 "Prices are shown in that country's currency.",
+        )
+
         st.caption(
             "Set `SERPAPI_KEY` env var for live Google Shopping results. "
             "Mock data includes realistic scam + legit listings for demo purposes."
@@ -593,6 +615,29 @@ def render_sidebar(model_loaded: bool) -> None:
             "</div>",
             unsafe_allow_html=True,
         )
+
+
+def render_source_notice() -> None:
+    """Says plainly when results are demo data rather than live listings, and why."""
+    if st.session_state.search_source == "live":
+        country = COUNTRIES[st.session_state.country][0]
+        st.caption(f"🌐 Live Google Shopping results · {country}")
+        return
+
+    if st.session_state.fallback_reason:
+        st.warning(
+            f"**Live search unavailable** — {st.session_state.fallback_reason}. "
+            "Showing demo data instead.",
+            icon="⚠️",
+        )
+    if not st.session_state.mock_matched:
+        st.info(
+            "The demo data has no listings for this search, so these are generic "
+            "examples. Try one of the suggestions above for realistic results.",
+            icon="📦",
+        )
+    elif not st.session_state.fallback_reason:
+        st.caption("📦 Demo data")
 
 
 def render_stats_bar() -> None:
@@ -707,22 +752,29 @@ def main() -> None:
     final_query = chip_query or (query if search_clicked else "")
 
     # ── Execute search ─────────────────────────────────────────────────────
-    if final_query and final_query != st.session_state.last_query:
-        st.session_state.last_query = final_query
-        st.session_state.toast      = {}    # clear old feedback toasts
+    # Re-search when the country or mock setting changes too, not just the text
+    search_key = (final_query, st.session_state.use_mock, st.session_state.country)
+    if final_query and search_key != st.session_state.last_search_key:
+        st.session_state.last_search_key = search_key
+        st.session_state.toast           = {}    # clear old feedback toasts
 
         if not st.session_state.model_loaded:
             st.warning("Train the model first before searching.", icon="⚠️")
         else:
             with st.spinner(f'Searching for **"{final_query}"** and running AI analysis…'):
                 # 1. Fetch products
-                feature_list = cached_search(
+                search = cached_search(
                     final_query,
                     st.session_state.use_mock,
                     SEARCH_RESULT_LIMIT,
+                    st.session_state.country,
                     get_preference_snapshot(st.session_state.user_prefs),
                     st.session_state.user_prefs,
                 )
+                feature_list = search["results"]
+                st.session_state.search_source   = search["source"]
+                st.session_state.fallback_reason = search["fallback_reason"]
+                st.session_state.mock_matched    = search["mock_matched"]
                 # 2. Run agent inference
                 recs, skipped, scams_caught = run_agent_inference(
                     st.session_state.model, feature_list
@@ -734,6 +786,10 @@ def main() -> None:
                 st.session_state.scams_caught_last_search = scams_caught
                 st.session_state.scams_caught    += scams_caught
                 st.session_state.total_searches  += 1
+
+    # ── Data-source notice ─────────────────────────────────────────────────
+    if st.session_state.search_results:
+        render_source_notice()
 
     # ── Results area ───────────────────────────────────────────────────────
     if st.session_state.recommendations:

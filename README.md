@@ -49,9 +49,14 @@ python bandit_baseline.py --compare-dqn            # baselines, see below
 python supervised_baseline.py
 ```
 
-For live Google Shopping results, get a key at [serpapi.com](https://serpapi.com)
-(100 free searches/month) and `export SERPAPI_KEY="..."`. Without one, the app
-uses built-in mock listings with a mix of real retailers and scam sites.
+**Live vs. demo data.** For live Google Shopping results, get a key at
+[serpapi.com](https://serpapi.com) (100 free searches/month) and
+`export SERPAPI_KEY="..."`. Pick the country (US, India, UK, Canada,
+Australia) in the sidebar; prices show in that country's currency, and
+`SERPAPI_COUNTRY=in` sets the default. Without a key, the app uses built-in
+demo listings for headphones, shoes, iPhones, MacBooks and gaming chairs, each
+a mix of real retailers and scam sites. If a live search fails (no key, quota
+used up, network error), the app says why and shows demo data instead.
 
 ### Tests
 
@@ -175,6 +180,9 @@ with main file `app.py`. No secrets are needed; add `SERPAPI_KEY` under
    legit (≥ 0.40) perfectly, which is why every model scores ~100%. Real
    listings, or scams with mid-range trust, would be a real benchmark.
 4. **Preferences are in-memory** and reset when the session ends.
+5. **Live search shares one quota.** Every visitor to the public demo uses
+   the same 100 searches/month; once they run out, everyone gets demo data
+   (with a warning) until the quota resets.
 
 ### Fixed bugs
 
