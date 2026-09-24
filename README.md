@@ -78,6 +78,7 @@ See [Contextual Bandit Baseline](#contextual-bandit-baseline) and
 | `data_generator.py` | 1 | Generates 5,000 synthetic product listings (legit + scam) |
 | `shopping_env.py`   | 2 | Custom Gymnasium environment with reward shaping |
 | `train_agent.py`    | 3 | DQN training, checkpointing, evaluation, online fine-tuning |
+| `agent_config.py`   | 3 | DQN hyperparameters (torch-free, so CI can check the committed model against them) |
 | `scraper.py`        | 4 | SerpAPI live fetch + feature engineering + trust scoring |
 | `app.py`            | 5 | Streamlit UI, agent inference, Like/Dislike feedback loop |
 | `dqn_shopping_agent.zip` | — | Pretrained DQN weights, checked into the repo so a fresh deploy works without retraining (see [Deployment](#deployment)) |
@@ -112,8 +113,10 @@ See [Contextual Bandit Baseline](#contextual-bandit-baseline) and
 | Skip + Scam | **+10** |
 | Skip + Legit | **-5** |
 
-**DQN hyperparameters:** 128→128 MLP · LR 5e-4 · γ 0.97 · replay buffer 100k ·
+**DQN hyperparameters:** 128→128 MLP · LR 5e-4 · γ 0.97 · batch 64 · replay buffer 100k ·
 ε 1.0 → 0.02 over 20% of training · hard target update every 1,000 steps.
+Defined once in `agent_config.py`; `tests/test_model_artifact.py` fails if the
+committed `dqn_shopping_agent.zip` was trained with anything else.
 
 ---
 
@@ -121,11 +124,22 @@ See [Contextual Bandit Baseline](#contextual-bandit-baseline) and
 
 Every 👍 / 👎 on a product card:
 
-1. Records an experience tuple `(obs, action=1, reward=±20, next_obs, done)`.
-2. Every **3 feedback signals**, injects the recent experiences into the
-   DQN's replay buffer and runs **50 gradient steps**.
+1. Records a feedback sample `(obs, action=1, reward=±20)`.
+2. Every **3 feedback signals**, runs **50 gradient steps** on the Q-network
+   (`train_agent.py::fine_tune_on_feedback`). Each step minimises two terms:
+   - **Feedback:** `Q(s, Recommend) → Q_pretrained(s, Recommend) ± 20`. This
+     is the environment's own definition of feedback (a bonus on the
+     Recommend reward), and it is bounded, so repeating a Dislike can't push
+     past it.
+   - **Anchor:** `Q(s', ·) → Q_pretrained(s', ·)` on states sampled across the
+     whole observation space, so nothing the user didn't rate drifts away
+     from the pretrained policy.
+   It trains on the whole session's feedback, not just the latest three.
 3. Updates the per-category preference score, which feeds back as the
    `user_preference_score` feature on the next search.
+
+The pretrained model is only read here, never trained, so it's shared
+safely across sessions.
 
 Each browser session fine-tunes its own private copy of the model — see
 [Limitations #4](#limitations--honest-notes) for why that isolation matters
@@ -154,7 +168,10 @@ pytest -v
 Covers `shopping_env.py`'s reward logic, `scraper.py`'s feature engineering
 and trust heuristics, and both baselines — no torch/stable-baselines3
 required, so it installs and runs in seconds. CI runs the same suite on
-every push/PR against `main`.
+every push/PR against `main`. `tests/test_online_learning.py` checks the
+committed model's behaviour and the Like/Dislike fine-tuning loop. It needs
+the full `requirements.txt`, so it's skipped under `requirements-test.txt`;
+run it locally after retraining.
 
 A few tests pin down bugs found while reviewing this project:
 `test_user_preferences_do_not_leak_between_independent_stores` regression-tests
@@ -183,11 +200,15 @@ a true MDP, so `gamma = 0.97` isn't doing anything meaningful, and the
 DQN's replay buffer / target network exist to solve a temporal-credit
 problem that isn't actually present here.
 
-The bandit — one linear layer per action, one SGD step per reward, no
-bootstrapping — gets remarkably close to the DQN on this task's metrics.
-That's evidence the extra machinery isn't earning its complexity for *this*
-formulation of the problem, worth stating rather than presenting DQN as
-required.
+The bandit is one linear layer per action, with one SGD step per reward and
+no bootstrapping. It never recommends a scam, but it misses 15.7% of legit
+deals where the DQN misses none (20 eval episodes, `--train-episodes 60`).
+That gap comes from the model's capacity, not from RL. Discount no longer
+predicts scams (see [Limitations #3](#limitations--honest-notes)), and a
+linear score can't express "recommend if trusted, *whatever* the discount"
+as cleanly as a 2-layer MLP can. A non-linear bandit (same MLP, no
+bootstrapping) is the fair next comparison. Until then, the replay buffer,
+target network and γ still have no temporal-credit problem to solve here.
 
 ---
 
@@ -205,12 +226,12 @@ python supervised_baseline.py
 
 Trains Logistic Regression and Random Forest on the same 4 features the RL
 agent sees and reports precision/recall/F1 next to the hard rule. All three
-land at a perfect 1.000 on the current dataset — a **data-quality** finding,
-not a model-quality one (see [Limitations #3](#limitations--honest-notes)):
-`site_trust_score`, `discount_percentage`, and `normalized_price` are each
-independently near-perfect separators by construction, so there's no signal
-left for a classifier to add over the hard rule. Harder, noisier training
-data is the single highest-value next step here.
+still land at ~1.000 on the current dataset (Logistic Regression 0.998 F1).
+That's a **data-quality** finding, not a model-quality one (see
+[Limitations #3](#limitations--honest-notes)): `site_trust_score` is still a
+perfect separator by construction, so there's no signal left for a
+classifier to add over the hard rule. Discount and price are no longer
+separators on their own.
 
 ---
 
@@ -230,7 +251,7 @@ Deployed on [Streamlit Community Cloud](https://streamlit.io/cloud) (free tier):
 Two things that make this work on the free tier:
 
 - **The trained model is checked into the repo** (`dqn_shopping_agent.zip`,
-  ~425KB) — `app.py` hard-fails without it, and a fresh deploy only has
+  ~300KB) — `app.py` hard-fails without it, and a fresh deploy only has
   what's in git. A larger model would need Git LFS or a model registry.
 - **`requirements.txt` skips `stable-baselines3[extra]`** — it pulls in
   opencv-python, pygame, and Atari packages this project never touches,
@@ -259,21 +280,45 @@ Named directly because that's more convincing than hoping nobody asks:
    documents a live case (a `.net` scam-styled domain) that can land at or
    above the cutoff and slip past the filter.
 
-3. **The synthetic training data is close to trivially separable.** Scam
-   listings use non-overlapping discount ranges (60–95%) and a fixed
-   scam-TLD list; legit listings use 5–40% discounts and mainstream `.com`
-   domains. The DQN's strong eval numbers partly reflect an easy boundary,
-   not just a good policy. Noisier, more overlapping data (or real
-   listings) would be a meaningfully harder benchmark.
+   **(Fixed)** Known-domain lookup used `domain.endswith("amazon.com")`, so
+   `cheap-amazon.com` got Amazon's full trust (0.999). Lookup now matches
+   the registrable domain exactly, so real subdomains like `smile.amazon.com`
+   still count. Any other domain that contains a known retailer's name
+   (`cheap-amazon.com`, `amaz0n.com`, `flipkartsale.shop`) is treated as a
+   look-alike and scored below the scam threshold. Regional storefronts
+   (`amazon.in`, `amazon.co.uk`, …) and major Indian retailers (Flipkart,
+   Myntra, Croma, …) are now in the trust table too.
 
-4. **A single Like/Dislike barely moves the model.** The online-learning
-   loop injects one experience into a 100,000-capacity replay buffer and
-   samples a random batch from the *whole* buffer for 50 gradient steps —
-   a handful of new samples have limited influence relative to the "Agent
-   retrained!" toast the UI shows. Good demo of the mechanism, not yet
-   evidence of meaningful per-user personalization in a single session.
+3. **(Partly fixed) The synthetic training data was separable on the wrong
+   feature.** Scam discounts used to be 60–95% and legit discounts 5–40%, so
+   the agent learned "small discount = good" instead of "trusted site =
+   good". It skipped real Amazon listings at 75%+ off and recommended
+   low-trust scams offering 5–20% off. Now 25% of legit listings are 40–85%
+   clearance deals, and 35% of scams use a believable 10–50% discount.
+   Discount alone predicts scams only slightly better than always guessing
+   "legit" (`tests/test_data_generator.py`). 15% of legit listings also come
+   from small shops with trust 0.40–0.70, the range the live scorer gives
+   unknown domains. The retrained agent's decision now flips on trust, at
+   any discount (`tests/test_online_learning.py`).
 
-   Related bug, now **fixed**: `app.py` loads the DQN through
+   Still true: trust itself separates the classes perfectly by
+   construction (scam < 0.28 ≤ legit), which is why the DQN evaluates at
+   0 scam slips / 0 missed deals. Real listings, or scams with
+   mid-range trust, would be a meaningfully harder benchmark.
+
+4. **(Fixed) Online learning didn't work.** The old loop pushed feedback
+   into SB3's replay buffer and called `model.train()`. A loaded model
+   starts with an empty buffer (SB3 doesn't save it), so the first 126
+   clicks trained nothing while the UI still said "Agent retrained!".
+   Click 129 then crashed, because a loaded model has no logger until
+   `learn()` runs. And the training target (`reward = -20`, terminal) had
+   nothing holding the rest of the Q-function in place, so ~128 Dislikes
+   made the agent skip every listing. See
+   [Online Learning Loop](#online-learning-loop) for the replacement.
+   `tests/test_online_learning.py` covers all three failures (it needs
+   torch, so it runs locally, not in the lean CI job).
+
+   Related bug, also **fixed**: `app.py` loads the DQN through
    `st.cache_resource`, which shares one model object across *every*
    visitor's session — by design, that's the point of `cache_resource`.
    But `handle_feedback()` fine-tunes by mutating that model in place
@@ -294,11 +339,21 @@ Named directly because that's more convincing than hoping nobody asks:
    changed preference wasn't actually invalidating cached results despite
    a comment claiming otherwise. Renamed to `pref_snapshot` to fix that.
 
-6. **(Fixed) A supervised classifier doesn't beat the hard rule here** —
-   and that's informative, not a null result. See
+6. **A supervised classifier doesn't beat the hard rule here**, and that's
+   informative, not a null result. See
    [Supervised Baseline](#supervised-baseline): all three approaches score
-   a perfect 1.000 on the current dataset, the same data-separability issue
-   as #3 from a different angle.
+   ~1.000 on the current dataset, the trust-separability point from #3 seen
+   from a different angle.
+
+7. **(Fixed) The live demo ran a stale model.** The committed
+   `dqn_shopping_agent.zip` had been trained with LR 1e-3, γ 0.95, batch 128
+   and a 128→128→64 network, none of which matched `train_agent.py` or this
+   README. It has been retrained with the documented settings, and
+   `tests/test_model_artifact.py` (torch-free, runs in CI) now fails if the
+   two drift apart again. The retrain also exposed that `train_agent.py`
+   crashed on startup: SB3's progress bar needs `rich`, which went away when
+   `[extra]` was dropped from `requirements.txt`. The progress bar is now
+   used only when `rich` is installed.
 
 **Also fixed while reviewing this repo:** the search bar crashed
 (`StreamlitAPIException`) whenever a quick-search chip was clicked, because

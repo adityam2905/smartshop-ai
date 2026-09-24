@@ -123,7 +123,7 @@ def main() -> None:
         "\nNote on interpreting these numbers: site_trust_score alone nearly\n"
         "perfectly separates scam/legit in this synthetic dataset (by\n"
         "construction, data_generator.py gives scam rows trust in [0, 0.28]\n"
-        "and legit rows trust in [0.55, 1.0]) -- so ALL three approaches score\n"
+        "and legit rows trust in [0.40, 1.0]) -- so ALL three approaches score\n"
         "very high here, including the zero-parameter hard rule. That is\n"
         "expected, not evidence the learned models are doing something\n"
         "clever; see README.md's Limitations section (#3) on why the dataset\n"

@@ -12,7 +12,6 @@ Environment variables (optional):
 
 import copy
 import os
-import numpy as np
 import streamlit as st
 
 # ── Page config — MUST be the first Streamlit call ────────────────────────────
@@ -43,6 +42,7 @@ LIKE_PREF_DELTA     = +0.05       # how much a Like shifts category preference
 DISLIKE_PREF_DELTA  = -0.05
 SCAM_THRESHOLD      = 0.30
 FINETUNE_GRAD_STEPS = 50
+MAX_FEEDBACK_SAMPLES = 200        # most recent feedback kept for fine-tuning
 SEARCH_RESULT_LIMIT  = 12
 CATEGORIES = [
     "Electronics", "Clothing", "Home & Garden",
@@ -230,6 +230,7 @@ def init_session_state() -> None:
         "total_searches":     0,
         "last_query":         "",
         "fine_tune_count":    0,          # how many times we've fine-tuned
+        "just_fine_tuned":    False,      # show the "retrained" toast once
         "agent_confidence":   {},         # item_index → q-value spread (optional display)
         "toast":              {},         # {item_index: "like"/"dislike"} for UI feedback
         "use_mock":           not bool(os.environ.get("SERPAPI_KEY", "")),
@@ -359,16 +360,10 @@ def handle_feedback(feat: dict, sentiment: str) -> None:
     reward      = LIKE_REWARD if sentiment == "like" else DISLIKE_REWARD
     pref_delta  = LIKE_PREF_DELTA if sentiment == "like" else DISLIKE_PREF_DELTA
 
-    # Build the experience tuple
-    obs      = features_to_obs(feat)
-    next_obs = np.zeros(4, dtype=np.float32)   # terminal-style next state
-
     experience = {
-        "obs":      obs,
+        "obs":      features_to_obs(feat),
         "action":   1,           # the agent recommended it (that's why we're rating it)
         "reward":   reward,
-        "next_obs": next_obs,
-        "done":     True,
     }
 
     st.session_state.feedback_buffer.append(experience)
@@ -385,14 +380,21 @@ def handle_feedback(feat: dict, sentiment: str) -> None:
         st.session_state.feedback_counts["like"] +
         st.session_state.feedback_counts["dislike"]
     )
-    if total_feedback % FEEDBACK_FINETUNE_EVERY == 0 and st.session_state.model:
+    teacher, _ = get_model()   # pristine pretrained model — read-only here
+    if total_feedback % FEEDBACK_FINETUNE_EVERY == 0 and st.session_state.model and teacher:
         with st.spinner("🧠 Agent is learning from your feedback…"):
-            st.session_state.model = fine_tune_on_feedback(
+            # Train on the whole session's feedback, not just the latest
+            # batch, so earlier Likes/Dislikes aren't forgotten either.
+            steps = fine_tune_on_feedback(
                 st.session_state.model,
-                st.session_state.feedback_buffer[-FEEDBACK_FINETUNE_EVERY:],
+                teacher,
+                st.session_state.feedback_buffer[-MAX_FEEDBACK_SAMPLES:],
                 gradient_steps=FINETUNE_GRAD_STEPS,
+                seed=st.session_state.fine_tune_count,
             )
+        if steps:
             st.session_state.fine_tune_count += 1
+            st.session_state.just_fine_tuned = True
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -776,17 +778,14 @@ def main() -> None:
         )
 
     # ── Fine-tuning notification ────────────────────────────────────────────
-    if st.session_state.fine_tune_count > 0:
-        total_fb = (
-            st.session_state.feedback_counts["like"] +
-            st.session_state.feedback_counts["dislike"]
+    # Only after a fine-tune that actually ran, and only on the rerun right
+    # after it (not on every later rerun while the feedback count stays put).
+    if st.session_state.just_fine_tuned:
+        st.session_state.just_fine_tuned = False
+        st.toast(
+            f"🧠 Agent retrained! ({st.session_state.fine_tune_count} fine-tune(s) so far)",
+            icon="✅",
         )
-        # Show a banner after each fine-tune trigger
-        if total_fb % FEEDBACK_FINETUNE_EVERY == 0 and total_fb > 0:
-            st.toast(
-                f"🧠 Agent retrained! ({st.session_state.fine_tune_count} fine-tune(s) so far)",
-                icon="✅",
-            )
 
 
 if __name__ == "__main__":

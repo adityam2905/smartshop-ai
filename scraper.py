@@ -60,6 +60,28 @@ DOMAIN_TRUST_DB: dict[str, float] = {
     "overstock.com":      0.76,
     "rakuten.com":        0.75,
 
+    # ── Regional storefronts of Tier 1 retailers ────────────────────────────
+    "amazon.in":          0.99,
+    "amazon.co.uk":       0.99,
+    "amazon.ca":          0.99,
+    "amazon.de":          0.99,
+    "amazon.fr":          0.99,
+    "amazon.co.jp":       0.99,
+    "amazon.com.au":      0.99,
+    "ebay.co.uk":         0.80,
+
+    # ── India (0.75 – 0.97) ──────────────────────────────────────────────────
+    "flipkart.com":       0.97,
+    "myntra.com":         0.93,
+    "croma.com":          0.93,
+    "reliancedigital.in": 0.92,
+    "tatacliq.com":       0.90,
+    "jiomart.com":        0.90,
+    "nykaa.com":          0.90,
+    "ajio.com":           0.89,
+    "snapdeal.com":       0.75,
+    "meesho.com":         0.75,
+
     # ── Tier 3: marketplace / discount (0.55 – 0.74) ────────────────────────
     "aliexpress.com":     0.60,
     "wish.com":           0.55,
@@ -74,7 +96,23 @@ SCAM_TLDS = {".xyz", ".tk", ".ml", ".ga", ".cf", ".gq", ".pw", ".top",
              ".icu", ".ru", ".cc", ".biz", ".info", ".click", ".review"}
 
 # TLDs associated with legitimate commerce
-TRUSTED_TLDS = {".com", ".co.uk", ".co.jp", ".com.au", ".ca", ".de", ".fr"}
+TRUSTED_TLDS = {".com", ".co.uk", ".co.jp", ".com.au", ".ca", ".de", ".fr",
+                ".in", ".co.in"}
+
+# Two-label public suffixes, so "shop.amazon.co.uk" → registrable "amazon.co.uk"
+_MULTI_LABEL_SUFFIXES = {"co.uk", "co.jp", "com.au", "co.in", "com.br", "co.nz", "com.mx", "com.sg"}
+
+# Brand names worth impersonating: the first label of every known retailer
+# domain ("amazon", "flipkart", "bestbuy", …). A domain that contains one of
+# these but isn't the brand's real domain (cheap-amazon.com, amaz0n-deals.net,
+# flipkart-sale.shop) is a classic phishing / scam pattern.
+_KNOWN_BRANDS = {d.split(".")[0] for d in DOMAIN_TRUST_DB}
+# Short brands that are also everyday words ("wish", "nike" in "nikesh") only
+# count when they are a whole hyphen-separated token, not a substring.
+_MIN_SUBSTRING_BRAND_LEN = 6
+_LOOKALIKE_TRUST = 0.10
+# Common digit-for-letter swaps used in look-alike domains
+_HOMOGLYPHS = str.maketrans({"0": "o", "1": "l", "3": "e", "4": "a", "5": "s", "7": "t"})
 
 
 def compute_domain_trust(url: str) -> float:
@@ -82,22 +120,28 @@ def compute_domain_trust(url: str) -> float:
     Rule-based trust score for a given URL.
 
     Priority:
-      1. Exact match in DOMAIN_TRUST_DB
-      2. TLD heuristic (scam TLD → low score, trusted TLD → medium score)
-      3. Keyword heuristic (suspicious words → lower score)
-      4. Deterministic fallback using domain hash → [0.35, 0.70]
+      1. Match in DOMAIN_TRUST_DB (the exact domain or a real subdomain of it)
+      2. Brand look-alike (e.g. cheap-amazon.com) → below the scam threshold
+      3. TLD heuristic (scam TLD → low score, trusted TLD → medium score)
+      4. Keyword heuristic (suspicious words → lower score)
+      5. Deterministic fallback using domain hash → [0.35, 0.70]
     """
     # --- extract bare domain ---
     domain = _extract_domain(url)
     if not domain:
         return 0.5
 
-    # 1. Exact DB lookup
-    for known_domain, score in DOMAIN_TRUST_DB.items():
-        if domain.endswith(known_domain):
-            return float(np.clip(score + _stable_jitter(domain, scale=0.01), 0.0, 1.0))
+    # 1. DB lookup on the registrable domain. A plain endswith() check here
+    #    used to give "cheap-amazon.com" amazon.com's full trust.
+    score = DOMAIN_TRUST_DB.get(_registrable_domain(domain))
+    if score is not None:
+        return float(np.clip(score + _stable_jitter(domain, scale=0.01), 0.0, 1.0))
 
-    # 2. TLD heuristic
+    # 2. Impersonation of a known retailer
+    if _is_brand_lookalike(domain):
+        return round(float(np.clip(_LOOKALIKE_TRUST + _stable_jitter(domain, scale=0.05), 0.0, 0.25)), 4)
+
+    # 3. TLD heuristic
     tld = _get_tld(domain)
     if tld in SCAM_TLDS:
         return round(float(np.clip(0.12 + _stable_jitter(domain, scale=0.08), 0.0, 0.25)), 4)
@@ -106,7 +150,7 @@ def compute_domain_trust(url: str) -> float:
     else:
         base_trust = 0.60
 
-    # 3. Suspicious keyword heuristic
+    # 4. Suspicious keyword heuristic
     suspicious_keywords = [
         "deal", "cheap", "discount", "free", "sale", "win", "prize",
         "offer", "bargain", "flash", "ultra", "mega", "super", "best-price",
@@ -115,7 +159,7 @@ def compute_domain_trust(url: str) -> float:
     hit_count = sum(1 for kw in suspicious_keywords if kw in domain.lower())
     base_trust -= hit_count * 0.07        # each hit reduces trust
 
-    # 4. Deterministic salt so same domain always gets same score
+    # 5. Deterministic salt so same domain always gets same score
     jitter = _stable_jitter(domain, scale=0.05)
 
     trust = float(np.clip(base_trust + jitter, 0.0, 1.0))
@@ -135,6 +179,30 @@ def _extract_domain(url: str) -> str:
     domain = parsed.netloc or parsed.path
     domain = re.sub(r"^www\.", "", domain)
     return domain.split(":")[0]
+
+
+def _registrable_domain(domain: str) -> str:
+    """"shop.amazon.co.uk" → "amazon.co.uk", "www.amazon.com" → "amazon.com"."""
+    parts = domain.split(".")
+    n_suffix_labels = 2 if ".".join(parts[-2:]) in _MULTI_LABEL_SUFFIXES else 1
+    return ".".join(parts[-(n_suffix_labels + 1):])
+
+
+def _is_brand_lookalike(domain: str) -> bool:
+    """
+    True when the domain's name label mentions a known retailer brand but
+    the domain isn't one of that brand's real domains (those already
+    returned in the DB lookup). Normalises digit homoglyphs first, so
+    "amaz0n" counts as "amazon".
+    """
+    label = _registrable_domain(domain).split(".")[0].translate(_HOMOGLYPHS)
+    tokens = set(label.split("-"))
+    for brand in _KNOWN_BRANDS:
+        if brand in tokens:
+            return True
+        if len(brand) >= _MIN_SUBSTRING_BRAND_LEN and brand in label:
+            return True
+    return False
 
 
 def _get_tld(domain: str) -> str:

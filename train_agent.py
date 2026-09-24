@@ -10,6 +10,7 @@ Usage:
 """
 
 import argparse
+import importlib.util
 import os
 import time
 import numpy as np
@@ -28,11 +29,11 @@ from stable_baselines3.common.monitor import Monitor
 # ── Local ─────────────────────────────────────────────────────────────────────
 from shopping_env import ShoppingEnv
 from evaluation import evaluate_policy
+from agent_config import DQN_HYPERPARAMS, LOG_DIR
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 MODEL_SAVE_PATH  = "dqn_shopping_agent"          # SB3 appends .zip automatically
 CHECKPOINT_DIR   = "checkpoints/"
-LOG_DIR          = "logs/"
 CSV_PATH         = "product_listings.csv"
 EVAL_EPISODES    = 20
 N_TRAIN_ENVS     = 4
@@ -98,31 +99,8 @@ def make_env(csv_path: str = CSV_PATH) -> ShoppingEnv:
     return Monitor(env)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DQN hyperparameters (tuned for this environment)
-# ─────────────────────────────────────────────────────────────────────────────
-
-DQN_HYPERPARAMS = dict(
-    policy               = "MlpPolicy",
-    learning_rate        = 5e-4,        # Adam LR
-    buffer_size          = 100_000,     # replay buffer capacity
-    learning_starts      = 2_000,       # steps before first gradient update
-    batch_size           = 64,          # mini-batch size for each update
-    tau                  = 1.0,         # hard target-network update (classic DQN)
-    gamma                = 0.97,        # discount factor — balanced future vs immediate
-    train_freq           = 1,           # update every environment step
-    gradient_steps       = 1,
-    target_update_interval = 1_000,     # sync target network every 1000 steps
-    exploration_fraction   = 0.2,       # fraction of training spent decaying ε
-    exploration_initial_eps= 1.0,       # start fully random
-    exploration_final_eps  = 0.02,      # end with 2% random actions
-    policy_kwargs        = dict(
-        net_arch=[128, 128],            # compact MLP for low-dimensional state
-    ),
-    verbose              = 0,           # suppress SB3 internal logs (we use our callback)
-    tensorboard_log      = LOG_DIR,
-    device               = "auto",
-)
+# DQN hyperparameters live in agent_config.py (torch-free, so CI can check
+# the committed model against them) — imported above.
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -162,7 +140,7 @@ def train(timesteps: int = 100_000, run_eval: bool = True) -> DQN:
     print("=" * 65)
     print(f"  CSV path      : {CSV_PATH}")
     print(f"  Total timesteps: {timesteps:,}")
-    print(f"  Network arch  : 128 → 128")
+    print(f"  Network arch  : {' → '.join(map(str, DQN_HYPERPARAMS['policy_kwargs']['net_arch']))}")
     print(f"  Gamma (discount): {DQN_HYPERPARAMS['gamma']}")
     print(f"  Replay buffer : {DQN_HYPERPARAMS['buffer_size']:,}")
     print(f"  Exploration   : {DQN_HYPERPARAMS['exploration_initial_eps']} → "
@@ -208,7 +186,10 @@ def train(timesteps: int = 100_000, run_eval: bool = True) -> DQN:
         total_timesteps  = timesteps,
         callback         = [monitor_cb, checkpoint_cb, eval_cb],
         log_interval     = 1,          # SB3 internal logging (we suppress via verbose=0)
-        progress_bar     = True,
+        # SB3's progress bar needs `rich`, which only comes with
+        # stable-baselines3[extra] (deliberately not installed — see
+        # requirements.txt). Without this guard training dies on startup.
+        progress_bar     = importlib.util.find_spec("rich") is not None,
     )
 
     elapsed = time.time() - t0
@@ -251,46 +232,96 @@ def load_agent(model_path: str = f"{MODEL_SAVE_PATH}.zip") -> DQN:
 # Fine-tune on a small experience buffer (used by app.py online loop)
 # ─────────────────────────────────────────────────────────────────────────────
 
+N_ANCHOR_STATES   = 2_048
+ANCHOR_BATCH_SIZE = 64
+
+
+def make_anchor_states(model: DQN, n: int = N_ANCHOR_STATES, seed: int = 0) -> np.ndarray:
+    """States spread uniformly over the observation space, used to pin the
+    fine-tuned Q-function to the pretrained one everywhere it wasn't rated."""
+    space = model.observation_space
+    rng = np.random.default_rng(seed)
+    return rng.uniform(space.low, space.high, size=(n, space.shape[0])).astype(np.float32)
+
+
 def fine_tune_on_feedback(
     model: DQN,
-    experience_buffer: list[dict],
+    teacher: DQN,
+    feedback: list[dict],
     gradient_steps: int = 50,
-) -> DQN:
+    anchor_states: np.ndarray | None = None,
+    seed: int = 0,
+) -> int:
     """
-    Accepts a list of experience dicts from the Streamlit feedback loop and
-    injects them directly into the DQN's replay buffer, then runs a small
-    number of gradient updates so the model adapts to user preferences.
+    Adapts `model`'s Q-network to Like/Dislike feedback in place and returns
+    the number of gradient steps taken (0 if there was nothing to learn).
 
-    Each dict in experience_buffer must have:
+    `teacher` is the untouched pretrained model; it is only read, never
+    trained, so it's safe to pass the process-wide cached model from app.py.
+
+    Each dict in `feedback` must have:
         {
-            "obs":      np.ndarray shape (4,),   # state before action
-            "action":   int,                     # always 1 (Recommend)
-            "reward":   float,                   # +20 Like / -20 Dislike
-            "next_obs": np.ndarray shape (4,),   # state of next product (or zeros)
-            "done":     bool,
+            "obs":    np.ndarray shape (4,),   # state that was rated
+            "action": int,                     # always 1 (Recommend)
+            "reward": float,                   # +20 Like / -20 Dislike
         }
+
+    Why this doesn't go through SB3's replay buffer + model.train():
+      * A loaded DQN starts with an empty replay buffer (SB3 doesn't save
+        it), so nothing trained until the buffer reached batch_size — ~128
+        clicks — while the UI claimed "Agent retrained!".
+      * model.train() on a loaded model then crashed: its logger is only
+        created inside learn().
+      * Training on feedback alone, with a target of `reward` for a
+        terminal transition, dragged Q(s, Recommend) toward -20 for every
+        state; a few dozen Dislikes made the agent skip everything.
+
+    Instead, each gradient step minimises two terms:
+      1. Feedback: Q(s, a) → Q_teacher(s, a) + reward. In ShoppingEnv, user
+         feedback is a bonus added to the Recommend reward, so this is the
+         pretrained value shifted by exactly that bonus. The target is
+         bounded, so repeating the same Dislike can't push past it.
+      2. Anchor: Q(s', ·) → Q_teacher(s', ·) on states sampled across the
+         observation space, so everything that wasn't rated keeps its
+         pretrained behaviour (no catastrophic forgetting).
     """
-    if not experience_buffer:
-        return model
+    if not feedback:
+        return 0
 
-    buf = model.replay_buffer
+    device = model.device
+    if anchor_states is None:
+        anchor_states = make_anchor_states(model)
 
-    for exp in experience_buffer:
-        obs      = np.array(exp["obs"],      dtype=np.float32).reshape(1, -1)
-        next_obs = np.array(exp["next_obs"], dtype=np.float32).reshape(1, -1)
-        action   = np.array([exp["action"]], dtype=np.int64)
-        reward   = np.array([exp["reward"]], dtype=np.float32)
-        done     = np.array([exp["done"]],   dtype=np.float32)
+    obs_fb  = torch.as_tensor(np.stack([f["obs"] for f in feedback]), dtype=torch.float32, device=device)
+    act_fb  = torch.as_tensor([int(f["action"]) for f in feedback], dtype=torch.long, device=device)
+    rew_fb  = torch.as_tensor([float(f["reward"]) for f in feedback], dtype=torch.float32, device=device)
+    anchors = torch.as_tensor(anchor_states, dtype=torch.float32, device=device)
 
-        buf.add(obs, next_obs, action, reward, done, [{}])
+    with torch.no_grad():
+        target_fb = teacher.q_net(obs_fb).clone()
+        target_fb[torch.arange(len(feedback), device=device), act_fb] += rew_fb
+        target_anchor = teacher.q_net(anchors)
 
-    # Only run gradient steps if the buffer has enough data
-    if buf.size() >= model.batch_size:
-        model.train(gradient_steps=gradient_steps, batch_size=model.batch_size)
-        print(f"Fine-tuned on {len(experience_buffer)} feedback samples "
-              f"({gradient_steps} gradient steps).")
+    q_net     = model.q_net
+    optimizer = model.policy.optimizer
+    rng       = np.random.default_rng(seed)
 
-    return model
+    model.policy.set_training_mode(True)
+    for _ in range(gradient_steps):
+        idx  = torch.as_tensor(rng.integers(0, len(anchors), size=ANCHOR_BATCH_SIZE), device=device)
+        loss = (
+            torch.nn.functional.smooth_l1_loss(q_net(obs_fb), target_fb)
+            + torch.nn.functional.smooth_l1_loss(q_net(anchors[idx]), target_anchor[idx])
+        )
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(q_net.parameters(), model.max_grad_norm)
+        optimizer.step()
+    model.policy.set_training_mode(False)
+
+    # Keep the target network consistent with the online one
+    model.q_net_target.load_state_dict(q_net.state_dict())
+    return gradient_steps
 
 
 # ─────────────────────────────────────────────────────────────────────────────

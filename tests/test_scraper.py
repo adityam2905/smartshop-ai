@@ -31,6 +31,37 @@ def test_scam_tld_domains_score_below_threshold(url):
     assert compute_domain_trust(url) < 0.3
 
 
+@pytest.mark.parametrize("url", [
+    "https://www.amazon.in/dp/XXXX",
+    "https://www.amazon.co.uk/dp/XXXX",
+    "https://www.flipkart.com/p/1",
+    "https://smile.amazon.com/dp/XXXX",     # real subdomain of a known retailer
+])
+def test_regional_and_subdomain_retailers_score_high(url):
+    assert compute_domain_trust(url) >= 0.9
+
+
+@pytest.mark.parametrize("url", [
+    "https://cheap-amazon.com/x",           # used to score 0.999 via endswith("amazon.com")
+    "https://notamazon.com/x",
+    "https://amazon-deals.net/x",
+    "https://amaz0n.com/x",                 # digit homoglyph
+    "https://flipkartsale.shop/x",
+    "https://bestbuy-outlet.com/x",
+])
+def test_brand_lookalike_domains_score_below_threshold(url):
+    assert compute_domain_trust(url) < 0.3
+
+
+@pytest.mark.parametrize("url", [
+    "https://pineapple-store.com/x",        # contains "apple", but not as a brand token
+    "https://wishlist-gifts.com/x",         # contains "wish"
+    "https://nikesh-books.in/x",            # contains "nike"
+])
+def test_ordinary_words_containing_short_brand_names_are_not_flagged(url):
+    assert compute_domain_trust(url) >= 0.45
+
+
 def test_dot_net_scam_domain_is_not_reliably_flagged():
     """
     Documents a real gap rather than papering over it: data_generator.py's
