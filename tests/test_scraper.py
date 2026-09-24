@@ -1,8 +1,10 @@
+import numpy as np
 import pytest
 
 import scraper
 from scraper import (
     compute_domain_trust,
+    estimate_market_prices,
     extract_features,
     match_mock_set,
     resolve_seller_domain,
@@ -78,7 +80,9 @@ def test_dot_net_scam_domain_is_not_reliably_flagged():
     a ".net" scam-styled domain at or above the 0.3 threshold depending on
     keyword-hit jitter, i.e. the live scam filter is not guaranteed to
     catch every domain shape the offline model was implicitly trained
-    against. See README.md's "Limitations" section.
+    against. The DQN is the backstop for this range: it's trained on
+    polished scams with trust 0.30–0.60 and skips them when the price is
+    implausibly low (as the mock "ultra-deals99.net" listing is).
     """
     score = compute_domain_trust("https://ultra-deals99.net/product/1")
     assert 0.0 <= score <= 1.0  # sanity bound only — deliberately not asserting < 0.3
@@ -269,6 +273,44 @@ def test_extracted_old_price_is_used_for_the_discount():
     feat = extract_features({"title": "x", "extracted_price": 60.0, "extracted_old_price": 100.0,
                              "source": "Walmart"}, market_avg_price=60.0)
     assert feat["discount_percentage"] == pytest.approx(0.4)
+
+
+# ── Market price reference ───────────────────────────────────────────────────
+
+def test_scam_lures_do_not_drag_the_market_reference_down():
+    """
+    Regression test: the reference used to be the median of *all* prices, so
+    a couple of scam lures made genuine retailers look overpriced.
+    """
+    raw = [
+        {"extracted_price": 280, "source": "Amazon"},
+        {"extracted_price": 300, "source": "Walmart"},
+        {"extracted_price": 290, "source": "Best Buy"},
+        {"extracted_price": 20,  "link": "https://cheapbuy-store.xyz/a"},
+        {"extracted_price": 25,  "link": "https://discount-mega.ru/b"},
+        {"extracted_price": 30,  "link": "https://bargain-hunt.gq/c"},
+    ]
+    market = estimate_market_prices(raw)
+    assert market[0] == pytest.approx(290)          # median of the trusted sellers only
+    assert market[3] == pytest.approx(290)          # lures are compared against it too
+
+
+def test_trusted_sellers_list_price_is_their_own_reference():
+    raw = [
+        {"extracted_price": 278, "extracted_old_price": 350, "source": "Amazon"},
+        {"extracted_price": 80,  "old_price": 100, "source": "Walmart"},
+        {"extracted_price": 40,  "old_price": 400, "link": "https://urbanstyle-outlet.com/x"},
+    ]
+    market = estimate_market_prices(raw)
+    assert market[0] == pytest.approx(350)
+    assert market[1] == pytest.approx(100)
+    # An untrusted seller's "was" price is exactly what a scam would inflate
+    assert market[2] == pytest.approx(np.median([278, 80]))
+
+
+def test_market_reference_falls_back_to_all_results_without_trusted_sellers():
+    raw = [{"extracted_price": p, "source": "Some Shop"} for p in (10, 20, 30)]
+    assert estimate_market_prices(raw) == [20.0, 20.0, 20.0]
 
 
 # ── Live search fallbacks (SerpAPI faked, no network) ────────────────────────

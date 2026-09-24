@@ -1,6 +1,20 @@
 """
 Phase 1: Synthetic Data Generator
 Generates 5,000 product listings with scam/legit labels.
+
+Each listing has two independent price signals, as in live results:
+  * normalized_price     — the real price ÷ the market price (< 1 is cheap,
+                           > 1 is overpriced). This is what a deal is worth.
+  * discount_percentage  — the discount the seller *claims*, which can be
+                           inflated (legit "MRP" markdowns, scam lures).
+
+and is built so that no single feature decides the label:
+  * Legit sellers range from big retailers (trust ~0.9) to small shops
+    (trust 0.40–0.70), and list clearance deals, normal prices and
+    overpriced items.
+  * Scams are either obviously untrusted (trust < 0.28), or polished shops
+    with middling trust (0.30–0.60) whose price is far below market — the
+    "too good to be true" pattern the trust < 0.3 hard rule can't catch.
 """
 
 import pandas as pd
@@ -12,11 +26,13 @@ np.random.seed(42)
 
 CATEGORIES = ["Electronics", "Clothing", "Home & Garden", "Sports", "Books", "Toys", "Beauty", "Automotive"]
 
-LEGIT_DOMAINS = [
-    "amazon.com", "walmart.com", "bestbuy.com", "target.com", "ebay.com",
-    "costco.com", "newegg.com", "bhphotovideo.com", "adorama.com", "wayfair.com",
-    "homedepot.com", "macys.com", "nordstrom.com", "zappos.com", "chewy.com",
-    "amazon.in", "flipkart.com", "croma.com",
+TIER1_DOMAINS = [
+    "amazon.com", "walmart.com", "bestbuy.com", "target.com", "amazon.in", "flipkart.com",
+]
+LEGIT_DOMAINS = TIER1_DOMAINS + [
+    "ebay.com", "costco.com", "newegg.com", "bhphotovideo.com", "adorama.com",
+    "wayfair.com", "homedepot.com", "macys.com", "nordstrom.com", "zappos.com",
+    "chewy.com", "croma.com",
 ]
 
 # Small but legitimate independent shops. scraper.compute_domain_trust() gives
@@ -29,19 +45,30 @@ SMALL_LEGIT_DOMAINS = [
 ]
 SMALL_LEGIT_RATIO = 0.15
 
-# Discount must NOT separate scam from legit on its own. Earlier versions used
-# non-overlapping ranges (legit 5–40%, scam 60–95%), so the agent learned
-# "small discount = safe" instead of "trusted site = safe" and skipped real
-# clearance deals on major retailers. Both classes now span the full range;
-# only site trust reliably tells them apart.
-LEGIT_CLEARANCE_RATIO = 0.25       # legit listings with a big (40–85%) discount
-SCAM_BELIEVABLE_RATIO = 0.35       # scams posing with a modest (10–50%) discount
-
+# Obvious scam sites: scam TLDs, spammy names → trust < 0.28
 SCAM_DOMAINS = [
     "ultra-deals99.net", "cheapbuy-store.xyz", "discount-mega.ru", "bestprice-deals.tk",
     "shop-fast-now.biz", "topdeal-online.cc", "savebig-store.pw", "bargain-hunt.gq",
     "flashsale-today.ml", "pricedown-shop.cf", "deal-xpress.top", "buylow-online.icu",
 ]
+# Polished scam shops on clean-looking .com domains → trust 0.30–0.60, the
+# same range as small legit shops. Only the implausibly low price gives them
+# away, so the agent (not the trust < 0.3 hard rule) has to catch them.
+POLISHED_SCAM_DOMAINS = [
+    "urbanstyle-outlet.com", "techhaven-store.com", "luxe-home-direct.com",
+    "gadgetplanet-shop.com", "primegear-store.com", "novahome-goods.com",
+]
+POLISHED_SCAM_RATIO = 0.45
+
+# Real price ÷ market price, per seller type: (probability, low, high)
+BIG_LEGIT_PRICE_RATIO   = [(0.20, 0.20, 0.60), (0.60, 0.60, 1.00), (0.20, 1.00, 1.50)]  # clearance / normal / overpriced
+SMALL_LEGIT_PRICE_RATIO = [(0.75, 0.65, 1.00), (0.25, 1.00, 1.50)]                     # small shops rarely deep-discount
+SCAM_PRICE_RATIO        = [(0.92, 0.05, 0.50), (0.08, 0.50, 0.70)]                     # lures, a few "believable"
+
+# Claimed discount must NOT separate scam from legit on its own. Earlier
+# versions used non-overlapping ranges (legit 5–40%, scam 60–95%), so the
+# agent learned "small discount = safe" instead of "trusted site = safe".
+SCAM_BELIEVABLE_DISCOUNT_RATIO = 0.35   # scams claiming a modest 10–50% off
 
 PRODUCT_TEMPLATES = {
     "Electronics": ["Sony Headphones WH-1000XM5", "Samsung 4K TV 55\"", "Apple AirPods Pro",
@@ -70,22 +97,36 @@ MARKET_PRICES = {
 }
 
 
+def _sample_ratio(mixture: list[tuple[float, float, float]]) -> float:
+    """Draw from a mixture of uniform ranges [(probability, low, high), …]."""
+    r = random.random()
+    for prob, low, high in mixture:
+        if r < prob:
+            return random.uniform(low, high)
+        r -= prob
+    return random.uniform(*mixture[-1][1:])
+
+
 def generate_legit_listing(category: str) -> dict:
     product = random.choice(PRODUCT_TEMPLATES[category])
     low, high = MARKET_PRICES[category]
     market_avg = round(random.uniform(low, high), 2)
 
-    # Mostly modest discounts, with a real share of clearance / lightning deals
-    if random.random() < LEGIT_CLEARANCE_RATIO:
-        discount_pct = round(random.uniform(0.40, 0.85), 4)
-    else:
-        discount_pct = round(random.uniform(0.05, 0.40), 4)
-    price = round(market_avg * (1 - discount_pct), 2)
-
     if random.random() < SMALL_LEGIT_RATIO:
         domain = random.choice(SMALL_LEGIT_DOMAINS)
+        price_ratio = _sample_ratio(SMALL_LEGIT_PRICE_RATIO)
     else:
         domain = random.choice(LEGIT_DOMAINS)
+        price_ratio = _sample_ratio(BIG_LEGIT_PRICE_RATIO)
+    price = round(max(market_avg * price_ratio, 0.99), 2)
+
+    # Legit sellers' claimed discount tracks the real one (off MRP, with a
+    # little noise); overpriced listings may still advertise a small markdown.
+    if price_ratio < 1.0:
+        discount_pct = float(np.clip(1.0 - price_ratio + np.random.normal(0, 0.04), 0.0, 0.95))
+    else:
+        discount_pct = random.uniform(0.0, 0.15)
+    discount_pct = round(discount_pct, 4)
     site_url = f"https://www.{domain}/dp/{random.randint(1000000, 9999999)}"
 
     return {
@@ -105,16 +146,18 @@ def generate_scam_listing(category: str) -> dict:
     low, high = MARKET_PRICES[category]
     market_avg = round(random.uniform(low, high), 2)
 
-    # Most scams advertise huge discounts to lure users, but a good share
-    # use a believable discount to look legitimate
-    if random.random() < SCAM_BELIEVABLE_RATIO:
+    # The real price is a lure, far below market; the *claimed* discount is
+    # usually huge but sometimes modest, to look believable.
+    price = round(max(market_avg * _sample_ratio(SCAM_PRICE_RATIO), 0.99), 2)
+    if random.random() < SCAM_BELIEVABLE_DISCOUNT_RATIO:
         discount_pct = round(random.uniform(0.10, 0.50), 4)
     else:
         discount_pct = round(random.uniform(0.50, 0.95), 4)
-    price = round(market_avg * (1 - discount_pct), 2)
-    price = max(price, 0.99)  # floor
 
-    domain = random.choice(SCAM_DOMAINS)
+    if random.random() < POLISHED_SCAM_RATIO:
+        domain = random.choice(POLISHED_SCAM_DOMAINS)
+    else:
+        domain = random.choice(SCAM_DOMAINS)
     site_url = f"https://{domain}/product/{random.randint(100, 99999)}"
 
     return {
@@ -131,20 +174,23 @@ def generate_scam_listing(category: str) -> dict:
 
 def compute_site_trust_score(domain: str, is_scam: bool) -> float:
     """
-    Rule-based trust score.
-    Legit sites: 0.55 – 1.0 (with some noise); small shops 0.40 – 0.70
-    Scam sites:  0.0  – 0.28 (with some noise, always below 0.3 threshold)
+    Rule-based trust score, mirroring what scraper.compute_domain_trust()
+    produces for each kind of seller:
+      Big retailers:       0.80 – 1.00
+      Other known shops:   0.60 – 0.90
+      Small legit shops:   0.40 – 0.70
+      Polished scam shops: 0.30 – 0.60   (overlaps small legit shops)
+      Obvious scam sites:  0.00 – 0.28
     """
+    if domain in POLISHED_SCAM_DOMAINS:
+        return round(random.uniform(0.30, 0.60), 4)
     if is_scam:
-        return round(np.clip(np.random.beta(1.5, 8), 0.0, 0.28), 4)
-    elif domain in SMALL_LEGIT_DOMAINS:
+        return round(float(np.clip(np.random.beta(1.5, 8), 0.0, 0.28)), 4)
+    if domain in SMALL_LEGIT_DOMAINS:
         return round(float(np.clip(np.random.normal(0.55, 0.06), 0.40, 0.70)), 4)
-    else:
-        # Top-tier domains score higher
-        tier1 = {"amazon.com", "walmart.com", "bestbuy.com", "target.com", "amazon.in", "flipkart.com"}
-        base = 0.90 if domain in tier1 else 0.70
-        noise = np.random.normal(0, 0.05)
-        return round(float(np.clip(base + noise, 0.55, 1.0)), 4)
+    if domain in TIER1_DOMAINS:
+        return round(float(np.clip(np.random.normal(0.92, 0.04), 0.80, 1.00)), 4)
+    return round(float(np.clip(np.random.normal(0.75, 0.06), 0.60, 0.90)), 4)
 
 
 def compute_user_preference_score(category: str) -> float:
@@ -156,7 +202,9 @@ def compute_user_preference_score(category: str) -> float:
         "Beauty": 0.50, "Automotive": 0.40,
     }
     base = prefs.get(category, 0.5)
-    noise = np.random.normal(0, 0.08)
+    # Wide spread so the agent sees the whole [0, 1] range — the preference
+    # now affects the reward, and live values drift with every Like/Dislike.
+    noise = np.random.normal(0, 0.15)
     return round(float(np.clip(base + noise, 0.0, 1.0)), 4)
 
 

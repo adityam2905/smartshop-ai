@@ -6,9 +6,11 @@
 *(free-tier apps sleep when idle — give it a minute to wake up)*
 
 A Streamlit app where a **Deep Q-Network (DQN)** screens live Google Shopping
-results: it recommends listings from trustworthy sellers, blocks scam and
-look-alike sites, ranks deals by discount, and adapts to your 👍 / 👎 feedback
-during the session.
+results. For each listing it weighs the seller's trustworthiness, the real
+price against the market, and your taste, then recommends it or skips it:
+real deals from trusted shops are shown, overpriced listings are skipped, and
+scams — including polished shops whose only tell is a price that's too good to
+be true — are blocked. It adapts to your 👍 / 👎 feedback during the session.
 
 See [Limitations](#limitations) for where the RL framing is doing more work
 than the problem needs.
@@ -17,21 +19,27 @@ than the problem needs.
 
 ## Results
 
-The committed model, evaluated on its training data and on two freshly
-generated datasets it never saw (5,000 listings each):
+Evaluated on two freshly generated datasets the model never saw (5,000
+listings each). "Return vs. oracle" is the reward earned relative to a policy
+that knows every listing's true label.
 
-| Metric | DQN | Linear bandit baseline |
-|---|---|---|
-| Scams recommended | **0%** | 0% |
-| Legit deals missed | **0%** | 15.7% |
+| Policy | Decision accuracy | Return vs. oracle | Scams recommended | Good deals missed |
+|---|---|---|---|---|
+| Hard rule: block trust < 0.3, recommend the rest | 72% | negative | 44% | 0% |
+| Hard rule + recommend only below-market prices | 89% | negative | 44% | 0% |
+| Linear contextual bandit | 58% | 61% | 0% | 38% |
+| **DQN** | **98%** | **98%** | **0.1–0.2%** | **1%** |
 
-The decision is driven by **site trust**, not discount size: trusted and
-small legit shops are recommended at any discount (5–95%), low-trust sites
-are skipped at any discount. Look-alike domains such as `cheap-amazon.com`
-are blocked.
+The rules recommend almost half the scams (the polished ones pass the trust
+check), which is why their return is negative despite decent accuracy. The
+linear bandit avoids scams by being so cautious it misses 38% of good deals.
+The DQN gets both right because it learns to *combine* trust with price: a
+mid-trust shop is fine at 0.9× market and a scam at 0.25×.
 
-These scores are perfect partly because trust separates scam from legit
-perfectly in the synthetic data — see [Limitations](#limitations).
+On real results — a live Google Shopping India search for "iPhone 15" — it
+recommended Flipkart at 0.73× market and a Cashify refurbished unit at 0.54×,
+skipped imported listings above market, and skipped an unknown seller's
+refurbished iPhone at ₹18,499 (0.23× market).
 
 ---
 
@@ -41,8 +49,8 @@ perfectly in the synthetic data — see [Limitations](#limitations).
 pip install -r requirements.txt
 
 python data_generator.py                           # 5,000 synthetic listings, 25% scam
-python train_agent.py --timesteps 100000 --eval    # saves dqn_shopping_agent.zip (~2 min on CPU)
-streamlit run app.py                               # uses mock data unless SERPAPI_KEY is set
+python train_agent.py --timesteps 100000 --eval    # saves dqn_shopping_agent.zip (~1 min on CPU)
+streamlit run app.py                               # uses demo data unless SERPAPI_KEY is set
 
 # Optional
 python scraper.py "Sony Headphones" --mock         # features, seller and trust per listing
@@ -63,16 +71,15 @@ used up, network error), the app says why and shows demo data instead.
 ### Tests
 
 ```bash
-pip install -r requirements-test.txt && pytest -v    # lean: no torch, runs in CI
-pip install -r requirements.txt && pytest -v         # also runs model + online-learning tests
+pip install -r requirements-test.txt && pytest -v    # lean: no torch
+pip install -r requirements.txt && pytest -v         # everything (132 tests)
 ```
 
-115 tests. `tests/test_online_learning.py` (model behaviour, fine-tuning) and
-`tests/test_app_rendering.py` (HTML escaping) need torch/Streamlit, so CI
-skips them — run them locally after retraining or touching `app.py`.
-`tests/test_model_artifact.py` runs in CI and fails if the committed model
-wasn't trained with the settings in `agent_config.py`. Live search is tested
-against a faked SerpAPI, so no key or network is needed.
+CI runs both: a fast job without torch, and a `test-full` job with CPU-only
+torch that also runs the model-behaviour, online-learning and `app.py` tests.
+`tests/test_model_artifact.py` fails if the committed model wasn't trained
+with the settings in `agent_config.py`. Live search is tested against a faked
+SerpAPI, so no key or network is needed.
 
 ---
 
@@ -85,40 +92,56 @@ against a faked SerpAPI, so no key or network is needed.
 | `agent_config.py` | DQN hyperparameters (torch-free, so CI can check the committed model) |
 | `train_agent.py` | DQN training, evaluation, and online fine-tuning |
 | `dqn_shopping_agent.zip` | Trained model, committed so the deploy works without training |
-| `scraper.py` | SerpAPI / mock fetch, feature engineering, domain trust scoring |
-| `app.py` | Streamlit UI, inference, Like/Dislike loop |
-| `evaluation.py` | Shared scoring harness for the DQN and the bandit |
+| `scraper.py` | SerpAPI / demo fetch, seller resolution, trust scoring, market prices |
+| `app.py` | Streamlit UI, inference, Like/Dislike loop, quota protection |
+| `evaluation.py` | Shared scoring harness for the DQN, bandit and rules |
 | `bandit_baseline.py`, `supervised_baseline.py` | Baselines (see below) |
 
 ### RL design
 
-**Observation:** `normalized_price` [0, 2] · `discount_percentage` [0, 1] ·
-`site_trust_score` [0, 1] · `user_preference_score` [0, 1]
+**Observation:**
+
+| Feature | Meaning |
+|---|---|
+| `normalized_price` [0, 2] | real price ÷ market price — values the deal, and flags lures |
+| `discount_percentage` [0, 1] | the discount the seller *claims* (can be inflated) |
+| `site_trust_score` [0, 1] | how trustworthy the seller is |
+| `user_preference_score` [0, 1] | how much you like this category |
+
 **Actions:** `0` Skip · `1` Recommend
 
 | Situation | Reward |
 |---|---|
 | Recommend + Scam | **-100** |
-| Recommend + Legit | `discount × 20 + user_feedback` |
+| Recommend + Legit | `20 × (1 − normalized_price) + 10 × (preference − 0.5)` |
 | Skip + Scam | **+10** |
-| Skip + Legit | **-5** |
+| Skip + Legit | 0 |
+
+Recommending a legit listing pays off only if it's actually below market or
+in a category you like — an overpriced listing from a trusted retailer costs
+reward, so the agent has to judge deal quality, not just avoid scams.
 
 **Hyperparameters:** 128→128 MLP · LR 5e-4 · γ 0.97 · batch 64 · replay
 buffer 100k · ε 1.0 → 0.02 over 20% of training · target update every 1,000 steps.
 
-**Training data:** discount ranges overlap on purpose — 25% of legit listings
-are 40–85% clearance deals and 35% of scams use a believable 10–50% discount —
-so the agent must learn from trust rather than discount size. 15% of legit
-listings come from small shops with trust 0.40–0.70, matching what the live
-scorer gives unknown domains.
+**Training data** is built so no single feature decides the answer:
 
-### Domain trust
+- **Legit sellers** range from big retailers (trust ~0.9) through mid-tier
+  shops to small independents (trust 0.40–0.70), and list clearance deals,
+  normal prices and overpriced items.
+- **Scams** are either obvious (trust < 0.28) or **polished shops** with
+  middling trust (0.30–0.60) — the same range as small legit shops — whose
+  price is far below market.
+- The **claimed discount** overlaps between classes, so it can't be used as
+  a shortcut.
 
-Trust is scored on the **seller's** domain. Live Google Shopping results
-link to a Google page rather than the shop, so `resolve_seller_domain()` unwraps
-Google redirects and otherwise maps the result's seller name ("Flipkart",
-"Amazon.in", "EMI Snapmint", "eBay - seller123") to a domain. Unknown sellers
-get a neutral 0.5. `compute_domain_trust()` then scores that domain:
+### Seller trust
+
+Live Google Shopping results link to a Google page rather than the shop, so
+`resolve_seller_domain()` unwraps Google redirects and otherwise maps the
+seller name ("Flipkart", "Amazon.in", "EMI Snapmint", "eBay - seller123") to a
+domain. Unknown sellers get a neutral 0.5. `compute_domain_trust()` then
+scores the domain:
 
 1. **Known retailers** — major US/UK retailers, Amazon's regional sites, and
    Indian retailers (Flipkart, Croma, Reliance Digital, Vijay Sales, Cashify,
@@ -129,9 +152,17 @@ get a neutral 0.5. `compute_domain_trust()` then scores that domain:
 3. **Everything else** — heuristics on TLD (`.xyz`, `.tk`, … score low) and
    scammy keywords (`deal`, `cheap`, `mega`, …).
 
-`app.py` hard-blocks anything with trust < 0.3 before the DQN is consulted.
-Listing titles, seller names and links come from third-party shops, so they
-are HTML-escaped and only `http(s)` links are rendered.
+`app.py` hard-blocks trust < 0.3 before the DQN is consulted; the DQN handles
+everything above that. Listing titles, seller names and links come from
+third-party shops, so they're HTML-escaped and only `http(s)` links render.
+
+### Market price
+
+`normalized_price` needs a market price to compare against
+(`estimate_market_prices()`): a trusted seller's own list price when it gives
+one, otherwise the median price among **trusted** sellers in the results, and
+the median of everything only as a last resort. Scam lures are excluded on
+purpose — they'd drag the median down and make real retailers look overpriced.
 
 ### Online learning
 
@@ -145,7 +176,7 @@ objectives:
 
 It trains on all of the session's feedback. Each browser session fine-tunes
 its own copy; the shared pretrained model is only read. Likes/Dislikes also
-shift a per-category preference score used as a feature on the next search.
+shift the per-category preference score, which the model uses as a feature.
 
 ---
 
@@ -154,15 +185,24 @@ shift a per-category preference score used as a feature on the next search.
 **Contextual bandit** (`bandit_baseline.py`). Each reward depends only on
 the current listing, and the next listing doesn't depend on the action, so
 this is a contextual bandit, not a true MDP — γ, the replay buffer and the
-target network have no temporal credit to assign. A from-scratch linear
-bandit never recommends a scam but misses 15.7% of legit deals. That gap is
-model capacity (linear vs. MLP), not RL; an MLP bandit is the fair next
-comparison.
+target network have no temporal credit to assign. The from-scratch linear
+bandit can't represent "mid trust is fine unless the price is implausible"
+with a single linear score per action, so it settles for skipping anything
+borderline. The DQN's edge is the MLP's capacity, not RL; an MLP bandit is the
+fair next comparison.
 
-**Supervised classifiers** (`supervised_baseline.py`). On the plain
-"is this a scam?" label, Logistic Regression (0.998 F1), Random Forest and
-the `trust < 0.3` rule all score ~1.000 — trust separates the classes by
-construction, so a classifier has nothing to add.
+**Supervised classifiers** (`supervised_baseline.py`), on the plain "is this
+a scam?" label:
+
+| Model | Precision | Recall | F1 |
+|---|---|---|---|
+| Hard rule (trust < 0.3) | 1.000 | 0.574 | 0.729 |
+| Logistic Regression | 0.984 | 0.968 | 0.976 |
+| Random Forest | 0.997 | 1.000 | 0.998 |
+
+The rule never flags a legit seller but misses the polished scams. Random
+Forest leans on trust (0.62 importance) and price (0.30) — the same
+combination the DQN has to learn.
 
 ---
 
@@ -173,6 +213,9 @@ with main file `app.py`. No secrets are needed; add `SERPAPI_KEY` (and
 optionally `SERPAPI_COUNTRY = "in"`) under **Settings → Secrets** for live
 results.
 
+- **SerpAPI quota:** raw live results are cached for 6 hours across all
+  visitors (failures aren't cached), and each session gets 15 distinct live
+  searches before falling back to demo data with a notice.
 - **Updating the model:** retrain, commit `dqn_shopping_agent.zip`, push,
   then **Reboot app** from the dashboard. The model is held in
   `st.cache_resource`, so a running app keeps the old one until it restarts.
@@ -185,26 +228,21 @@ results.
 ## Limitations
 
 1. **It's a contextual bandit framed as an MDP** — see [Baselines](#baselines).
-2. **The agent doesn't judge deal quality.** Recommending any legit listing
-   earns ≥ 0 and skipping it costs -5, so the optimal policy is "recommend
-   everything that isn't a scam"; the training data has no overpriced legit
-   listings to learn otherwise. "Best deals first" is a sort by discount.
-   The pretrained model also ignores `user_preference_score`, which never
-   affects the training reward — personalisation comes only from fine-tuning.
-3. **Scam blocking is mostly a rule.** The trust < 0.3 hard filter runs
-   before the DQN, and trust comes from a hand-built heuristic. Known gaps:
-   a scam-styled `.net` domain can score just above 0.3
-   (`test_dot_net_scam_domain_is_not_reliably_flagged`), and an unknown
-   seller with an implausible price isn't flagged — a live search returned a
-   refurbished iPhone 15 from an unknown shop at ₹18,499 while Cashify listed
-   it at ₹44,399, and it would be recommended.
-4. **The synthetic data is still easy.** Trust separates scam (< 0.28) from
-   legit (≥ 0.40) perfectly, which is why every model scores ~100%. Real
-   listings, or scams with mid-range trust, would be a real benchmark.
+2. **The training data is still synthetic.** It's designed to be realistic —
+   overlapping trust, overlapping claimed discounts, overpriced legit
+   listings — but the model has only been checked on a handful of real
+   searches, not a labelled set of real listings. The 98% is on data drawn
+   from the same generator.
+3. **"Market price" is estimated from one search's results.** A search that
+   mixes very different products (a phone and its case) gives a poor
+   reference, and a search with few trusted sellers falls back to the median
+   of everything.
+4. **Trust is a hand-built heuristic.** An unknown seller gets 0.5 however
+   reputable it is, and a scam on a clean-looking domain needs an implausible
+   price to be caught.
 5. **Preferences are in-memory** and reset when the session ends.
-6. **Live search shares one quota.** Every visitor to the public demo uses
-   the same 100 searches/month; once they run out, everyone gets demo data
-   (with a warning) until the quota resets.
+6. **Live search shares one quota** of 100 searches/month across all visitors;
+   caching and the per-session limit slow that down but don't remove it.
 
 ### Fixed bugs
 
@@ -214,22 +252,27 @@ results.
   the approach [above](#online-learning).
 - **Stale model:** the deployed model was trained with different LR, γ, batch
   size and network size than documented. Retrained; now checked in CI.
+- **The agent didn't judge deals:** the old reward paid for recommending any
+  legit listing and penalised skipping it, so the policy was "recommend
+  everything that isn't a scam", matching the trust rule; the preference
+  feature was ignored.
 - **Discount shortcut:** non-overlapping discount ranges taught the agent
   "small discount = safe", so it skipped real 75%+ deals and recommended
   low-trust scams at 5–20% off.
 - **Look-alike domains:** `endswith("amazon.com")` gave `cheap-amazon.com`
   full trust, while `amazon.in` and Flipkart were unknown.
 - **Live trust was meaningless:** it was scored on the result's link, which
-  for Google Shopping is a Google page, so every live seller got the same
-  score. Now scored on the seller (see [Domain trust](#domain-trust)).
+  for Google Shopping is a Google page, so every live seller got the same score.
+- **Skewed market price:** the plain median of all results was dragged down by
+  scam lures, making genuine retailers look overpriced.
+- **Quota drain:** search results were cached for 5 minutes and keyed on the
+  user's preferences, so every Like/Dislike cost another SerpAPI search.
 - **Silent fallback to demo data:** failed live searches (including SerpAPI's
-  "out of searches" response, which isn't an exception) quietly showed mock
-  listings. The app now shows why.
+  "out of searches" response) quietly showed mock listings.
 - **Unescaped listing HTML:** third-party titles and links were inserted into
   the page as raw HTML.
 - **Shared state across users:** one visitor's feedback retrained the model
   everyone used, and preferences leaked between sessions.
-- **Stale search cache:** preference changes didn't invalidate cached results.
 - **UI:** quick-search chips crashed the app, and the "Force mock data"
   checkbox reset itself on every rerun.
 - **Training crash:** `train_agent.py` required `rich` for its progress bar,

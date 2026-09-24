@@ -37,5 +37,28 @@ def test_legit_listings_cover_the_mid_trust_range_the_live_scorer_produces(df):
     assert ((legit["site_trust_score"] >= 0.40) & (legit["site_trust_score"] < 0.60)).mean() > 0.05
 
 
-def test_scam_trust_stays_below_the_hard_rule_threshold(df):
-    assert df.loc[df["is_scam"], "site_trust_score"].max() < 0.3
+def test_trust_alone_no_longer_separates_the_classes(df):
+    """
+    Polished scam shops sit in the same trust range as small legit shops, so
+    the trust < 0.3 hard rule misses some scams and the agent has to use price.
+    """
+    scam = df[df["is_scam"]]
+    assert (scam["site_trust_score"] >= 0.3).mean() > 0.25
+    best = max(
+        ((df["site_trust_score"] < t) == df["is_scam"]).mean()
+        for t in np.linspace(0, 1, 201)
+    )
+    assert best < 0.95
+
+
+def test_mid_trust_scams_are_given_away_by_an_implausible_price(df):
+    mid_trust = df[(df["site_trust_score"] >= 0.3) & (df["site_trust_score"] <= 0.6)]
+    scam_price = mid_trust.loc[mid_trust["is_scam"], "normalized_price"]
+    legit_price = mid_trust.loc[~mid_trust["is_scam"], "normalized_price"]
+    assert scam_price.median() < 0.4 < legit_price.median()
+
+
+def test_some_legit_listings_are_overpriced(df):
+    """Needed for the agent to learn deal quality, not just scam avoidance."""
+    legit = df[~df["is_scam"]]
+    assert (legit["normalized_price"] > 1.0).mean() > 0.10

@@ -595,6 +595,48 @@ def fetch_serpapi_results(
 # Public API — called by app.py
 # ─────────────────────────────────────────────────────────────────────────────
 
+MARKET_REFERENCE_MIN_TRUST = 0.7
+
+
+def _parse_price(value) -> float:
+    if isinstance(value, str):
+        value = re.sub(r"[^\d.]", "", value) or 0
+    return float(value or 0)
+
+
+def estimate_market_prices(raw_results: list[dict]) -> list[Optional[float]]:
+    """
+    The market price each listing is compared against (→ normalized_price,
+    which the agent uses both to value a deal and to spot a price that's too
+    good to be true).
+
+      * A trusted seller's own list price ("was ₹79,900"), when it gives one —
+        the most specific reference, and immune to a search that mixes a
+        flagship with a budget model.
+      * Otherwise the median price among trusted sellers in the results.
+        Scam lures are deliberately far below market, so including them
+        dragged the plain median down and made real retailers look
+        overpriced.
+      * Otherwise (fewer than 2 trusted sellers) the median of all results.
+    """
+    prices = [_parse_price(item.get("extracted_price") or item.get("price", 0)) for item in raw_results]
+    trusts = [compute_domain_trust(resolve_seller_domain(item)) for item in raw_results]
+
+    trusted = [p for p, t in zip(prices, trusts) if p > 0 and t >= MARKET_REFERENCE_MIN_TRUST]
+    everyone = [p for p in prices if p > 0]
+    pool = trusted if len(trusted) >= 2 else everyone
+    reference = float(np.median(pool)) if pool else None
+
+    market = []
+    for item, price, trust in zip(raw_results, prices, trusts):
+        list_price = _parse_price(item.get("extracted_old_price") or item.get("old_price") or item.get("was_price") or 0)
+        if trust >= MARKET_REFERENCE_MIN_TRUST and list_price > price > 0:
+            market.append(list_price)
+        else:
+            market.append(reference)
+    return market
+
+
 def search_products(
     query: str,
     use_mock: bool = False,
@@ -612,9 +654,14 @@ def search_products_detailed(
     num_results: int = 10,
     user_prefs: Optional[dict] = None,
     country: str = DEFAULT_COUNTRY,
+    fetcher=None,
 ) -> dict:
     """
     Main entry point for app.py.
+
+    `fetcher(query, num_results, country) -> (raw_results, fallback_reason)`
+    replaces fetch_serpapi_results for live searches — app.py passes a cached
+    version so repeat searches don't spend SerpAPI quota.
 
     1. Fetches raw results (SerpAPI or mock).
     2. Runs feature engineering on every item.
@@ -643,26 +690,14 @@ def search_products_detailed(
     if use_mock:
         raw_results = fetch_mock_results(query)
     else:
-        raw_results, fallback_reason = fetch_serpapi_results(query, num_results, country)
+        raw_results, fallback_reason = (fetcher or fetch_serpapi_results)(query, num_results, country)
     is_live = not use_mock and fallback_reason is None
     currency = COUNTRIES.get(country, COUNTRIES[DEFAULT_COUNTRY])[1] if is_live else MOCK_CURRENCY
 
-    # Estimate a market average price from the batch
-    prices = []
-    for item in raw_results:
-        p = item.get("extracted_price") or item.get("price", 0)
-        if isinstance(p, str):
-            p = float(re.sub(r"[^\d.]", "", p) or 0)
-        if float(p) > 0:
-            prices.append(float(p))
-
-    # Use the median as a robust market average
-    market_avg = float(np.median(prices)) if prices else None
-
     feature_list = []
-    for item in raw_results:
+    for item, market_price in zip(raw_results, estimate_market_prices(raw_results)):
         try:
-            features = extract_features(item, market_avg_price=market_avg, user_prefs=user_prefs)
+            features = extract_features(item, market_avg_price=market_price, user_prefs=user_prefs)
             features["currency"] = currency
             feature_list.append(features)
         except Exception as exc:

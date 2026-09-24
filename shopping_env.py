@@ -22,10 +22,22 @@ class ShoppingEnv(gym.Env):
         1 → Recommend (show this product to the user)
 
     Reward function:
-        Recommend + Scam  (trust < 0.3) : -100  catastrophic penalty
-        Recommend + Legit              : (discount_pct * 20) + user_feedback_score
-        Skip      + Scam               :  +10   correctly avoided a trap
-        Skip      + Legit              :   -5   missed a good deal
+        Recommend + Scam   : -100  catastrophic penalty
+        Recommend + Legit  : deal_value + user_feedback_score, where
+                             deal_value = 20 * (1 - normalized_price)
+                                        + 10 * (user_preference_score - 0.5)
+                             — positive for a below-market price the user is
+                             likely to care about, negative for an overpriced
+                             listing or an unwanted category
+        Skip      + Scam   :  +10  correctly avoided a trap
+        Skip      + Legit  :    0  neutral — a missed good deal shows up as
+                             the positive reward Recommend would have earned
+
+    The value comes from the *real* price relative to the market, not the
+    seller's claimed discount, which can be inflated. Earlier versions paid
+    20 * discount for any legit Recommend and -5 for any legit Skip, so the
+    optimal policy was "recommend everything that isn't a scam" and the
+    agent never had to judge whether a deal was any good.
     """
 
     metadata = {"render_modes": ["human", "ansi"]}
@@ -38,6 +50,14 @@ class ShoppingEnv(gym.Env):
         "user_preference_score",
     ]
     SCAM_TRUST_THRESHOLD = 0.3
+    PRICE_WEIGHT      = 20.0
+    PREFERENCE_WEIGHT = 10.0
+
+    @classmethod
+    def deal_value(cls, normalized_price: float, user_preference: float) -> float:
+        """Reward for recommending a legit listing (before live user feedback)."""
+        return (cls.PRICE_WEIGHT * (1.0 - normalized_price)
+                + cls.PREFERENCE_WEIGHT * (user_preference - 0.5))
 
     def __init__(
         self,
@@ -102,29 +122,31 @@ class ShoppingEnv(gym.Env):
         Returns (reward, reason_string).
         """
         row = self._records[self._order[self._current_index]]
-        discount = float(row["discount_percentage"])
-        trust = float(row["site_trust_score"])
+        price_ratio = float(row["normalized_price"])
+        value = (self.deal_value(price_ratio, float(row["user_preference_score"]))
+                 + self.user_feedback_score)
 
+        # The reason prefixes are what evaluation.py / train_agent.py count on.
         if action == 1:   # Recommend
             if is_scam:
                 reward = -100.0
                 reason = "SCAM recommended! penalty -100"
-            else:                                          # legit deal
-                reward = (discount * 20.0) + self.user_feedback_score
-                reason = (
-                    f"Good recommendation: discount={discount:.2f}, "
-                    f"feedback={self.user_feedback_score:.1f} → reward={reward:.2f}"
-                )
+            elif value > 0:
+                reward = value
+                reason = f"Good recommendation: price={price_ratio:.2f}× market → reward {reward:.2f}"
+            else:
+                reward = value
+                reason = f"Poor-value recommendation: price={price_ratio:.2f}× market → reward {reward:.2f}"
         else:              # Skip
-            if is_scam:          # correctly avoided scam
+            if is_scam:
                 reward = +10.0
                 reason = "Scam skipped correctly! → reward +10"
-            else:                                          # missed a legit deal
-                reward = -5.0
-                reason = (
-                    f"Missed legit deal: discount={discount:.2f}, "
-                    f"trust={trust:.2f} → penalty -5"
-                )
+            elif value > 0:
+                reward = 0.0
+                reason = f"Missed good deal: price={price_ratio:.2f}× market (was worth {value:.2f})"
+            else:
+                reward = 0.0
+                reason = f"Poor deal skipped correctly: price={price_ratio:.2f}× market"
 
         return float(reward), reason
 
@@ -228,8 +250,9 @@ class ShoppingEnv(gym.Env):
 
     def set_user_feedback(self, score: float) -> None:
         """
-        Called by app.py to inject real-time user feedback (+20 Like / -20 Dislike).
-        This updates the bonus component of the Recommend-Legit reward.
+        Injects user feedback (+20 Like / -20 Dislike) as a bonus on the
+        Recommend-Legit reward. app.py's online learning applies the same
+        ±20 shift directly to Q-values (train_agent.fine_tune_on_feedback).
         """
         self.user_feedback_score = float(score)
 

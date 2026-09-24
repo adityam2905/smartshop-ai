@@ -25,6 +25,12 @@ TRUSTED_SMALL_DISCOUNT = np.array([0.80, 0.20, 0.95, 0.5], dtype=np.float32)
 SMALL_SHOP_DISCOUNT    = np.array([0.75, 0.25, 0.55, 0.5], dtype=np.float32)   # unknown-but-clean shop
 SCAM_BIG_DISCOUNT      = np.array([0.30, 0.70, 0.10, 0.5], dtype=np.float32)
 SCAM_SMALL_DISCOUNT    = np.array([0.80, 0.20, 0.10, 0.5], dtype=np.float32)   # "believable" scam
+# Middling trust (passes the trust < 0.3 hard rule) but priced at a quarter
+# of market — the refurbished-iPhone-at-₹18,499 pattern seen in live results
+POLISHED_SCAM          = np.array([0.25, 0.75, 0.55, 0.5], dtype=np.float32)
+TRUSTED_OVERPRICED     = np.array([1.30, 0.05, 0.95, 0.5], dtype=np.float32)
+AT_MARKET_LOVED        = np.array([1.00, 0.00, 0.95, 0.9], dtype=np.float32)
+AT_MARKET_UNWANTED     = np.array([1.00, 0.00, 0.95, 0.1], dtype=np.float32)
 
 
 @pytest.fixture(scope="module")
@@ -63,6 +69,21 @@ def test_pretrained_model_skips_low_trust_listings_at_any_discount(pretrained, o
     assert act(pretrained, obs) == SKIP
 
 
+def test_pretrained_model_skips_too_good_to_be_true_prices_from_mid_trust_sellers(pretrained):
+    """The case the trust < 0.3 hard rule can't catch."""
+    assert act(pretrained, POLISHED_SCAM) == SKIP
+
+
+def test_pretrained_model_skips_overpriced_listings_even_from_trusted_sellers(pretrained):
+    assert act(pretrained, TRUSTED_OVERPRICED) == SKIP
+
+
+def test_pretrained_model_uses_the_preference_score(pretrained):
+    """Same at-market listing: recommended in a loved category, not in an unwanted one."""
+    assert act(pretrained, AT_MARKET_LOVED) == RECOMMEND
+    assert act(pretrained, AT_MARKET_UNWANTED) == SKIP
+
+
 # ── Online fine-tuning ──────────────────────────────────────────────────────
 
 def test_first_fine_tune_trains_immediately_without_crashing(model, pretrained):
@@ -88,6 +109,7 @@ def test_repeated_dislikes_flip_that_item_but_do_not_collapse_the_policy(model, 
     assert act(model, TRUSTED_BIG_DISCOUNT) == RECOMMEND
     assert act(model, SMALL_SHOP_DISCOUNT) == RECOMMEND
     assert act(model, SCAM_BIG_DISCOUNT) == SKIP
+    assert act(model, POLISHED_SCAM) == SKIP
 
 
 def test_fine_tuning_never_mutates_the_teacher(model, pretrained):

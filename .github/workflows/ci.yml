@@ -46,3 +46,30 @@ jobs:
 
       - name: Smoke-test the supervised baseline
         run: python supervised_baseline.py
+
+  # The full suite, including the tests the lean job skips: the committed
+  # model's behaviour, the online-learning loop, and HTML escaping in app.py.
+  # CPU-only torch keeps the install to ~200MB instead of the ~2GB CUDA wheel.
+  test-full:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install CPU-only torch
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install full dependencies
+        run: pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Generate a synthetic dataset
+        run: python data_generator.py
+
+      - name: Run full test suite (nothing skipped)
+        run: pytest -v -rs

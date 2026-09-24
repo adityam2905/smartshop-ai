@@ -128,20 +128,19 @@ def _print_comparison(bandit_metrics: dict, dqn_metrics: dict) -> None:
     print("=" * 65)
     print(f"  {'Metric':<28}{'Bandit':>15}{'DQN':>15}")
     rows = [
-        ("mean_return",     "Mean episode return",            "{:>15.1f}"),
-        ("good_rec_rate",   "Good rec rate",                  "{:>15.1%}"),
-        ("scam_avoid_rate", "Scam avoid rate",                "{:>15.1%}"),
-        ("scam_slip_rate",  "Scam slip rate (lower=better)",  "{:>15.1%}"),
-        ("deal_miss_rate",  "Deal miss rate",                 "{:>15.1%}"),
+        ("pct_of_oracle",    "Return vs. oracle",              "{:>15.1%}"),
+        ("accuracy",         "Decision accuracy",              "{:>15.1%}"),
+        ("scam_recall_miss", "Scams recommended (of scams)",   "{:>15.1%}"),
+        ("poor_rec_rate",    "Poor-value recommended",         "{:>15.1%}"),
+        ("deal_miss_rate",   "Good deals missed",              "{:>15.1%}"),
     ]
     for key, name, fmt in rows:
-        print(f"  {name:<28}{fmt.format(bandit_metrics[key])}{fmt.format(dqn_metrics[key])}")
+        print(f"  {name:<30}{fmt.format(bandit_metrics[key])}{fmt.format(dqn_metrics[key])}")
     print("=" * 65)
     print(
-        "\nA bandit landing close to the DQN on these numbers is evidence\n"
-        "that the DQN's extra machinery isn't earning its complexity for\n"
-        "this particular formulation of the problem — worth calling out\n"
-        "explicitly rather than letting the DQN framing go unquestioned."
+        "\nThe task is a contextual bandit (no action affects the next\n"
+        "listing), so any gap here is about model capacity — a linear score\n"
+        "vs. an MLP — not about the DQN's temporal-credit machinery."
     )
 
 

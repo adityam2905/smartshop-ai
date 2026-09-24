@@ -66,18 +66,17 @@ class TrainingMonitorCallback(BaseCallback):
             if reward is None:
                 continue
             self.episode_rewards.append(reward)
-            if   "SCAM recommended" in reason:  self.scam_hits     += 1
-            elif "Scam skipped"     in reason:  self.scams_avoided += 1
-            elif "Missed legit"     in reason:  self.deals_missed  += 1
-            elif "Good recommendation" in reason: self.good_recs   += 1
+            if   reason.startswith("SCAM recommended"):    self.scam_hits     += 1
+            elif reason.startswith("Scam skipped"):        self.scams_avoided += 1
+            elif reason.startswith("Missed good deal"):    self.deals_missed  += 1
+            elif reason.startswith("Good recommendation"): self.good_recs     += 1
 
         if (self.num_timesteps - self._last_log_step) >= self.log_interval:
             self._last_log_step = self.num_timesteps
             if self.episode_rewards:
                 mean_r  = np.mean(self.episode_rewards[-500:])
-                total   = self.scam_hits + self.scams_avoided + self.deals_missed + self.good_recs
-                avoid_r = self.scams_avoided / max(total, 1) * 100
-                scam_r  = self.scam_hits     / max(total, 1) * 100
+                avoid_r = self.scams_avoided / max(self.scams_avoided + self.scam_hits, 1) * 100
+                scam_r  = self.scam_hits     / max(self.scams_avoided + self.scam_hits, 1) * 100
                 print(
                     f"  Step {self.num_timesteps:>7,} | "
                     f"Mean reward (last 500): {mean_r:>7.2f} | "

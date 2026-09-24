@@ -28,6 +28,8 @@ st.set_page_config(
 from scraper import (
     COUNTRIES,
     DEFAULT_COUNTRY,
+    fetch_mock_results,
+    fetch_serpapi_results,
     search_products_detailed,
     features_to_obs,
     update_user_preference,
@@ -48,6 +50,8 @@ SCAM_THRESHOLD      = 0.30
 FINETUNE_GRAD_STEPS = 50
 MAX_FEEDBACK_SAMPLES = 200        # most recent feedback kept for fine-tuning
 SEARCH_RESULT_LIMIT  = 12
+LIVE_CACHE_TTL_SECONDS = 6 * 3600   # shopping prices barely move in 6 hours
+MAX_LIVE_SEARCHES_PER_SESSION = 15  # distinct live queries per visitor
 CATEGORIES = [
     "Electronics", "Clothing", "Home & Garden",
     "Sports", "Books", "Toys", "Beauty", "Automotive",
@@ -237,6 +241,7 @@ def init_session_state() -> None:
         "fallback_reason":    None,       # why live search fell back to mock, if it did
         "mock_matched":       True,       # False → mock had no listings for the query
         "country":            DEFAULT_COUNTRY,   # bound to the sidebar selectbox
+        "live_queries_used":  set(),      # (query, country) pairs fetched live this session
         "fine_tune_count":    0,          # how many times we've fine-tuned
         "just_fine_tuned":    False,      # show the "retrained" toast once
         "agent_confidence":   {},         # item_index → q-value spread (optional display)
@@ -279,32 +284,46 @@ def get_model():
         return None, str(exc)
 
 
-def get_preference_snapshot(user_prefs: dict) -> tuple[tuple[str, float], ...]:
-    """Stable, hashable cache-key input for search results that depend on preferences."""
-    return tuple((category, get_user_preference(category, user_prefs)) for category in CATEGORIES)
+# ─────────────────────────────────────────────────────────────────────────────
+# Live search, cached to protect the SerpAPI quota
+# ─────────────────────────────────────────────────────────────────────────────
+# Only the raw SerpAPI response is cached, keyed on (query, num_results,
+# country). Feature engineering runs fresh on every search, so a Like/Dislike
+# that changes the user's preferences is reflected immediately without
+# another API call. (Caching the whole search keyed on a preference snapshot
+# spent a SerpAPI search every time preferences changed.) The cache is
+# process-wide — st.cache_data is shared across sessions — which is exactly
+# what saves quota when several visitors click the same suggestion.
+
+class LiveSearchFailed(Exception):
+    """Raised inside the cached fetch so failures are never cached: st.cache_data
+    doesn't store exceptions, so the next search retries instead of serving
+    demo data for hours after one network blip."""
+
+    def __init__(self, raw_results: list[dict], reason: str):
+        super().__init__(reason)
+        self.raw_results = raw_results
+        self.reason = reason
 
 
-@st.cache_data(show_spinner=False, ttl=300)
-def cached_search(
-    query: str,
-    use_mock: bool,
-    num_results: int,
-    country: str,
-    pref_snapshot: tuple[tuple[str, float], ...],
-    _user_prefs: dict,
-) -> dict:
-    # `pref_snapshot` (a hashable tuple) IS part of the cache key, so a
-    # Like/Dislike that changes preferences invalidates stale cached results.
-    # `_user_prefs` starts with an underscore, which tells Streamlit to skip
-    # hashing it (a plain dict isn't hashable) while still passing the live
-    # object through — it's what actually gets forwarded to feature
-    # engineering. NOTE: the previous version of this function accepted the
-    # snapshot as `_pref_snapshot` (leading underscore), which meant
-    # Streamlit silently excluded it from the cache key despite the comment
-    # claiming otherwise — preference changes were not invalidating the
-    # cache. Renaming it to `pref_snapshot` here fixes that.
-    return search_products_detailed(
-        query, use_mock=use_mock, num_results=num_results, user_prefs=_user_prefs, country=country,
+@st.cache_data(show_spinner=False, ttl=LIVE_CACHE_TTL_SECONDS)
+def _cached_serpapi_fetch(query: str, num_results: int, country: str) -> list[dict]:
+    raw_results, reason = fetch_serpapi_results(query, num_results, country)
+    if reason:
+        raise LiveSearchFailed(raw_results, reason)
+    return raw_results
+
+
+def fetch_live_cached(query: str, num_results: int, country: str) -> tuple[list[dict], str | None]:
+    try:
+        return _cached_serpapi_fetch(query.strip().lower(), num_results, country), None
+    except LiveSearchFailed as exc:
+        return exc.raw_results, exc.reason
+
+
+def fetch_quota_exhausted(query: str, num_results: int, country: str) -> tuple[list[dict], str | None]:
+    return fetch_mock_results(query), (
+        f"this session has used its {MAX_LIVE_SEARCHES_PER_SESSION} live searches"
     )
 
 
@@ -782,15 +801,22 @@ def main() -> None:
             st.warning("Train the model first before searching.", icon="⚠️")
         else:
             with st.spinner(f'Searching for **"{final_query}"** and running AI analysis…'):
-                # 1. Fetch products
-                search = cached_search(
+                # 1. Fetch products. Each session gets a fixed number of
+                #    distinct live searches so one visitor can't drain the
+                #    shared monthly SerpAPI quota; repeats don't count.
+                live_key = (final_query.strip().lower(), st.session_state.country)
+                used     = st.session_state.live_queries_used
+                over_limit = live_key not in used and len(used) >= MAX_LIVE_SEARCHES_PER_SESSION
+                search = search_products_detailed(
                     final_query,
-                    st.session_state.use_mock,
-                    SEARCH_RESULT_LIMIT,
-                    st.session_state.country,
-                    get_preference_snapshot(st.session_state.user_prefs),
-                    st.session_state.user_prefs,
+                    use_mock    = st.session_state.use_mock,
+                    num_results = SEARCH_RESULT_LIMIT,
+                    user_prefs  = st.session_state.user_prefs,
+                    country     = st.session_state.country,
+                    fetcher     = fetch_quota_exhausted if over_limit else fetch_live_cached,
                 )
+                if search["source"] == "live":
+                    used.add(live_key)
                 feature_list = search["results"]
                 st.session_state.search_source   = search["source"]
                 st.session_state.fallback_reason = search["fallback_reason"]

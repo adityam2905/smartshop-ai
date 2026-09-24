@@ -120,16 +120,13 @@ def main() -> None:
 
     print("=" * 78)
     print(
-        "\nNote on interpreting these numbers: site_trust_score alone nearly\n"
-        "perfectly separates scam/legit in this synthetic dataset (by\n"
-        "construction, data_generator.py gives scam rows trust in [0, 0.28]\n"
-        "and legit rows trust in [0.40, 1.0]) -- so ALL three approaches score\n"
-        "very high here, including the zero-parameter hard rule. That is\n"
-        "expected, not evidence the learned models are doing something\n"
-        "clever; see README.md's Limitations section (#3) on why the dataset\n"
-        "is currently too easy to be a demanding benchmark. The confusion-\n"
-        "matrix breakdown (false positives/negatives) is more informative\n"
-        "here than the headline scores."
+        "\nNote on interpreting these numbers: the hard rule never flags a\n"
+        "legit seller (precision 1.0) but misses the polished scam shops,\n"
+        "whose trust (0.30-0.60) overlaps small legit shops -- they're only\n"
+        "given away by a price far below market. The learned models catch\n"
+        "them by combining trust with normalized_price, which is also what\n"
+        "the DQN has to learn. The confusion matrix (FN = scams missed) is\n"
+        "the number to watch."
     )
 
     print("\nRandom Forest feature importances (which of the 4 features it leaned on):")

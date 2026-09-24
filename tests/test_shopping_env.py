@@ -33,7 +33,6 @@ def test_reward_function_matrix(tiny_csv):
     for idx, row in env.df.iterrows():
         env._current_index = idx
         is_scam = bool(row["is_scam"])
-        discount = float(row["discount_percentage"])
 
         reward_recommend, reason_recommend = env._compute_reward(action=1, is_scam=is_scam)
         reward_skip, reason_skip = env._compute_reward(action=0, is_scam=is_scam)
@@ -44,10 +43,39 @@ def test_reward_function_matrix(tiny_csv):
             assert reward_skip == pytest.approx(10.0)
             assert "skipped" in reason_skip.lower()
         else:
-            # user_feedback_score defaults to 0.0 for a fresh env
-            assert reward_recommend == pytest.approx(discount * 20.0)
-            assert reward_skip == pytest.approx(-5.0)
-            assert "missed" in reason_skip.lower()
+            # Legit row: price 0.8× market, neutral preference → 20 × 0.2 = 4.
+            # user_feedback_score defaults to 0.0 for a fresh env.
+            assert reward_recommend == pytest.approx(4.0)
+            assert reason_recommend.startswith("Good recommendation")
+            assert reward_skip == pytest.approx(0.0)
+            assert reason_skip.startswith("Missed good deal")
+
+
+@pytest.mark.parametrize("price_ratio, preference, expected", [
+    (0.80, 0.5,  4.0),     # 20% below market
+    (1.00, 0.5,  0.0),     # at market, neutral preference
+    (1.25, 0.5, -5.0),     # overpriced
+    (1.00, 0.9,  4.0),     # at market, but a category the user loves
+    (0.90, 0.1, -2.0),     # a bit cheap, but a category the user avoids
+])
+def test_deal_value_rewards_real_price_and_preference(price_ratio, preference, expected):
+    assert ShoppingEnv.deal_value(price_ratio, preference) == pytest.approx(expected)
+
+
+def test_recommending_an_overpriced_legit_listing_is_penalised(tiny_csv):
+    """The agent must judge deal quality, not just avoid scams."""
+    env = ShoppingEnv(csv_path=tiny_csv)
+    env.reset(seed=0)
+    env._order = np.arange(env.n_products)
+    legit = int(env.df.index[~env.df["is_scam"]][0])
+    env._records[legit]["normalized_price"] = 1.3
+    env._current_index = legit
+
+    reward_recommend, reason_recommend = env._compute_reward(action=1, is_scam=False)
+    reward_skip, reason_skip = env._compute_reward(action=0, is_scam=False)
+    assert reward_recommend < reward_skip == 0.0
+    assert reason_recommend.startswith("Poor-value recommendation")
+    assert reason_skip.startswith("Poor deal skipped")
 
 
 def test_user_feedback_score_bonuses_legit_recommend_reward(tiny_csv):
@@ -58,12 +86,10 @@ def test_user_feedback_score_bonuses_legit_recommend_reward(tiny_csv):
 
     legit_rows = env.df.index[~env.df["is_scam"]]
     assert len(legit_rows) > 0
-    idx = legit_rows[0]
-    env._current_index = idx
-    discount = float(env.df.loc[idx, "discount_percentage"])
+    env._current_index = legit_rows[0]
 
     reward, _ = env._compute_reward(action=1, is_scam=False)
-    assert reward == pytest.approx(discount * 20.0 + 20.0)
+    assert reward == pytest.approx(4.0 + 20.0)
 
 
 def test_episode_terminates_after_all_products(tiny_csv):
