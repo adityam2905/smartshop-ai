@@ -148,7 +148,7 @@ def train(timesteps: int = 100_000, run_eval: bool = True) -> DQN:
     print("=" * 65)
 
     # ── Build environment ─────────────────────────────────────────────────────
-    train_env = make_vec_env(make_env, n_envs=N_TRAIN_ENVS)
+    train_env = make_vec_env(make_env, n_envs=N_TRAIN_ENVS, seed=DQN_HYPERPARAMS["seed"])
 
     # ── Instantiate DQN ───────────────────────────────────────────────────────
     model = DQN(env=train_env, **DQN_HYPERPARAMS)

@@ -25,8 +25,8 @@ def tiny_csv(tmp_path) -> str:
         ),
         dict(
             product_name="Legit Item", category="Books",
-            price=40.0, market_avg_price=50.0,
-            normalized_price=0.8, discount_percentage=0.20,
+            price=35.0, market_avg_price=50.0,
+            normalized_price=0.7, discount_percentage=0.30,
             site_trust_score=0.9, user_preference_score=0.5,
             site_url="https://amazon.com/2", domain="amazon.com", is_scam=False,
         ),

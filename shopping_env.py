@@ -24,11 +24,12 @@ class ShoppingEnv(gym.Env):
     Reward function:
         Recommend + Scam   : -100  catastrophic penalty
         Recommend + Legit  : deal_value + user_feedback_score, where
-                             deal_value = 20 * (1 - normalized_price)
+                             deal_value = 20 * (0.90 - normalized_price)
                                         + 10 * (user_preference_score - 0.5)
-                             — positive for a below-market price the user is
-                             likely to care about, negative for an overpriced
-                             listing or an unwanted category
+                             when normalized_price ≤ 0.90, and always
+                             negative above it — only a real (≥ 10%) discount
+                             is worth showing, and an unwanted category can
+                             make even that not worth it
         Skip      + Scam   :  +10  correctly avoided a trap
         Skip      + Legit  :    0  neutral — a missed good deal shows up as
                              the positive reward Recommend would have earned
@@ -52,12 +53,25 @@ class ShoppingEnv(gym.Env):
     SCAM_TRUST_THRESHOLD = 0.3
     PRICE_WEIGHT      = 20.0
     PREFERENCE_WEIGHT = 10.0
+    # A listing is only worth recommending at ≤ 90% of the market price. The
+    # reward used to break even at 1.0×, so the agent recommended trusted
+    # sellers at their normal price (on real listings 29 of its 40
+    # recommendations were legit but no real deal). Chosen from a sweep of
+    # 5/10/15/20% on the real labelled listings: 10% gave the best balance of
+    # precision and recall (see README "On real listings").
+    DEAL_THRESHOLD    = 0.90
 
     @classmethod
     def deal_value(cls, normalized_price: float, user_preference: float) -> float:
-        """Reward for recommending a legit listing (before live user feedback)."""
-        return (cls.PRICE_WEIGHT * (1.0 - normalized_price)
-                + cls.PREFERENCE_WEIGHT * (user_preference - 0.5))
+        """
+        Reward for recommending a legit listing (before live user feedback).
+        Above DEAL_THRESHOLD it's always negative, whatever the preference —
+        taste can make the agent pickier about a deal, never lower the bar.
+        """
+        price_value = cls.PRICE_WEIGHT * (cls.DEAL_THRESHOLD - normalized_price)
+        if normalized_price > cls.DEAL_THRESHOLD:
+            return min(price_value, -1.0)
+        return price_value + cls.PREFERENCE_WEIGHT * (user_preference - 0.5)
 
     def __init__(
         self,

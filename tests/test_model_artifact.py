@@ -20,7 +20,7 @@ MODEL_ZIP = Path(__file__).resolve().parent.parent / "dqn_shopping_agent.zip"
 CHECKED_KEYS = [
     "learning_rate", "buffer_size", "learning_starts", "batch_size", "tau",
     "gamma", "gradient_steps", "target_update_interval", "exploration_fraction",
-    "exploration_initial_eps", "exploration_final_eps",
+    "exploration_initial_eps", "exploration_final_eps", "seed",
 ]
 
 

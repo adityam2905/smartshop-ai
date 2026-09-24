@@ -1,0 +1,423 @@
+{
+ "query": "Atomic Habits book",
+ "country": "in",
+ "collected": "2026-09-24",
+ "results": [
+  {
+   "position": 1,
+   "title": "Atomic Habits by James Clear",
+   "price": "£18+",
+   "extracted_price": 18,
+   "rating": 3.3,
+   "reviews": 4300
+  },
+  {
+   "position": 2,
+   "title": "Homo Deus: A Brief History of Tomorrow",
+   "source": "Sheetal Online Fashion Store",
+   "price": "₹250",
+   "extracted_price": 250,
+   "old_price": "Usually ₹449",
+   "extracted_old_price": 449,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:15548616738923784134,productid:7535524577486215162,headlineOfferDocid:16944160268320035982,imageDocid:6081735235096324079,rds:PC_13996559202119409481|PROD_PC_13996559202119409481,gpcid:13996559202119409481,mid:576462255515395612,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 2.7,
+   "reviews": 683,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 3,
+   "title": "The Genetic Effects of Radiation",
+   "source": "amazon.in",
+   "price": "₹500",
+   "extracted_price": 500,
+   "old_price": "Was ₹768",
+   "extracted_old_price": 768,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=productid:13237236568748162148,headlineOfferDocid:13237236568748162148,imageDocid:6455151349213987611,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 4,
+   "title": "Acceptance and Commitment Therapy For Dummies",
+   "source": "amazon.in",
+   "price": "₹1,383.99",
+   "extracted_price": 1383.99,
+   "old_price": "Was ₹2,650",
+   "extracted_old_price": 2650,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=productid:9687746529216185558,headlineOfferDocid:9687746529216185558,imageDocid:10057974880110129027,rds:PC_5003267545442321113|PROD_PC_5003267545442321113,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 1.4,
+   "reviews": 1
+  },
+  {
+   "position": 5,
+   "title": "Activate Your Life",
+   "source": "amazon.in",
+   "price": "₹819",
+   "extracted_price": 819,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:397708605076802361,productid:5607447585410546659,headlineOfferDocid:1990165004856604706,imageDocid:5180062058681545268,rds:PC_12259145631514176394|PROD_PC_12259145631514176394,gpcid:12259145631514176394,mid:576462473226446726,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.7,
+   "reviews": 1
+  },
+  {
+   "position": 6,
+   "title": "Total Body Transformation Secrets: Fitness Concepts Formula - Paperback",
+   "source": "atlanticbooks.com",
+   "price": "₹3,432",
+   "extracted_price": 3432,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:10045684912119169528,productid:4805043123069145871,headlineOfferDocid:4958348906916792433,imageDocid:8176514154048996485,gpcid:10958470557165321725,mid:576462654509491898,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 7,
+   "title": "Hat Your Body Knows about Happiness",
+   "source": "atlanticbooks.com",
+   "price": "₹1,317",
+   "extracted_price": 1317,
+   "old_price": "Usually ₹2,027",
+   "extracted_old_price": 2027,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:2654208444342867350,productid:4308782172772664251,headlineOfferDocid:15738747922268257446,imageDocid:14770840381205406836,gpcid:7137776652743832677,mid:576462852069361723,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 8,
+   "title": "1 2 3 the Countdown to Success Has Begun | Bookscape",
+   "source": "atlanticbooks.com",
+   "price": "₹1,013",
+   "extracted_price": 1013,
+   "old_price": "Usually ₹1,888",
+   "extracted_old_price": 1888,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:12740531431378052356,productid:1553676291823604176,headlineOfferDocid:886332000707795,imageDocid:7805698038112256674,gpcid:17818766875294590796,mid:576462876322717973,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 9,
+   "title": "Tough Shit | Bookscape",
+   "source": "atlanticbooks.com",
+   "price": "₹2,070",
+   "extracted_price": 2070,
+   "old_price": "Usually ₹2,523",
+   "extracted_old_price": 2523,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:11275176066741013999,productid:3759200264053954399,headlineOfferDocid:6520534422017159599,imageDocid:7854005308246009269,gpcid:4702385739125689825,mid:576462848798015072,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 10,
+   "title": "The Human Aura: Astral Colors and Thought Forms",
+   "source": "amazon.in",
+   "price": "₹640",
+   "extracted_price": 640,
+   "old_price": "Was ₹911",
+   "extracted_old_price": 911,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=productid:6259813394314560880,headlineOfferDocid:6259813394314560880,imageDocid:13501168960086761338,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 11,
+   "title": "Becoming | Michelle Obama",
+   "source": "Amazon.in",
+   "price": "₹1,099",
+   "extracted_price": 1099,
+   "old_price": "Was ₹1,538",
+   "extracted_old_price": 1538,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:5412297384974856137,productid:12933577893293211054,headlineOfferDocid:7130245444404437014,imageDocid:16386723707745147144,rds:PC_2706626606992131278|PROD_PC_2706626606992131278,gpcid:2706626606992131278,mid:576462303503722602,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.7,
+   "reviews": 1400,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 12,
+   "title": "Tiny Habits, Lasting Weight Loss: Simple Shifts That Make Weight Loss Stick for Good",
+   "source": "amazon.in",
+   "price": "₹1,897",
+   "extracted_price": 1897,
+   "old_price": "Usually ₹3,124",
+   "extracted_old_price": 3124,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:4612676413872117561,productid:8795535356818724303,headlineOfferDocid:18189583217596557694,imageDocid:10880726083812683429,gpcid:8022251997632834787,mid:576462894964866211,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 13,
+   "title": "Quantum physics and mechanics for beginners",
+   "source": "ubuy.co.in",
+   "price": "₹2,443",
+   "extracted_price": 2443,
+   "old_price": "Was ₹3,147",
+   "extracted_old_price": 3147,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:6584354259496486581,productid:619313103659887824,headlineOfferDocid:14221104698462479422,imageDocid:514934382972107751,rds:PC_14175008239727346548|PROD_PC_14175008239727346548,gpcid:14175008239727346548,mid:576462657450031768,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 1
+  },
+  {
+   "position": 14,
+   "title": "The Goodness Algorithm",
+   "source": "amazon.in",
+   "price": "₹700.28",
+   "extracted_price": 700.28,
+   "old_price": "Usually ₹1,369",
+   "extracted_old_price": 1369,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:5236000551847588206,productid:12650381866636970067,headlineOfferDocid:521253165735158316,imageDocid:2044654103202069885,gpcid:7123641916421357615,mid:576462682708402211,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 15,
+   "title": "The Thyroid Fix: The No-Nonsense Guide to Fix Fatigue, Fogginess, and Fat That Won't Budge",
+   "source": "amazon.in",
+   "price": "₹504.45",
+   "extracted_price": 504.45,
+   "old_price": "Usually ₹2,170",
+   "extracted_old_price": 2170,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:4849846762266412248,productid:16882417568249076896,headlineOfferDocid:1881265439587738976,imageDocid:11325270991638056163,gpcid:17983490084072939458,mid:576462868173359965,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 16,
+   "title": "Understanding Metabolism: The Truth About Counting Calories, Sustainable Weight Loss, and Metabolic Damage - Paperback",
+   "source": "amazon.in",
+   "price": "₹449",
+   "extracted_price": 449,
+   "old_price": "Usually ₹1,507",
+   "extracted_old_price": 1507,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:2362351747427970623,productid:11919078767885879819,headlineOfferDocid:3774728305810945608,imageDocid:4506159062047304270,gpcid:2594273366727155516,mid:576462364055206024,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 17,
+   "title": "Hatha yoga | The Scince Of Psychic Healing | The Yogi Philosophy Of Physical Well - Being | Yogi Ramacharaka | William Walker Atkinson Book | ... बुक",
+   "source": "amazon.in",
+   "price": "₹299",
+   "extracted_price": 299,
+   "old_price": "Was ₹410",
+   "extracted_old_price": 410,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=productid:14168058867289232578,headlineOfferDocid:14168058867289232578,imageDocid:3317491726991334988,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 18,
+   "title": "Perfect AStrology (Zodiac Sign): AStrology - Paperback",
+   "source": "atlanticbooks.com",
+   "price": "₹1,938",
+   "extracted_price": 1938,
+   "old_price": "Usually ₹2,382",
+   "extracted_old_price": 2382,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:2905754430271442673,productid:17160479222212196333,headlineOfferDocid:1087919822451477159,imageDocid:8514994689867790375,gpcid:17219067887081232502,mid:576462225615351371,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 19,
+   "title": "Technological Slavery: The Collected Writings of Theodore J. Kaczynski, aka \"The Unabomer\"",
+   "source": "amazon.in",
+   "price": "₹10,767.98",
+   "extracted_price": 10767.98,
+   "old_price": "Was ₹38,723",
+   "extracted_old_price": 38723,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=productid:16896262304697820820,headlineOfferDocid:16896262304697820820,imageDocid:17201057809882069277,rds:PC_17544101725401186476|PROD_PC_17544101725401186476,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 1
+  },
+  {
+   "position": 20,
+   "title": "All That Is Solid Melts Into Air",
+   "source": "newbookworld.com",
+   "price": "₹489",
+   "extracted_price": 489,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:3442751192144491249,productid:9902298168953181073,headlineOfferDocid:17604823284860126014,imageDocid:6804665706601580227,rds:PC_15200916640309526652|PROD_PC_15200916640309526652,gpcid:15200916640309526652,mid:74142006,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.3,
+   "reviews": 35
+  },
+  {
+   "position": 21,
+   "title": "The Secret to Happiness is Death | Bookscape",
+   "source": "atlanticbooks.com",
+   "price": "₹1,375",
+   "extracted_price": 1375,
+   "old_price": "Usually ₹1,733",
+   "extracted_old_price": 1733,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:13542845869226218878,productid:4099599258514592217,headlineOfferDocid:11081650404552458272,imageDocid:6448117540202585586,gpcid:1316571913619323620,mid:576462836762119397,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 22,
+   "title": "All Families Are Psychotic",
+   "source": "Kitabay",
+   "price": "₹299",
+   "extracted_price": 299,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:1294131420147869367,productid:9273704908838146397,headlineOfferDocid:2161213365154178330,imageDocid:11787372252268635902,rds:PC_14665936574195316794|PROD_PC_14665936574195316794,gpcid:14665936574195316794,mid:9219643,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 1
+  },
+  {
+   "position": 23,
+   "title": "Unleash Your Subconscious Mind Power: 8 Habits of The Mindynamics System Practitioners (ebook)",
+   "source": "amazon.in",
+   "price": "₹275",
+   "extracted_price": 275,
+   "old_price": "₹359",
+   "extracted_old_price": 359,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:4236481151192148423,productid:890298468051756333,headlineOfferDocid:4251165667003698970,imageDocid:15457758084334604271,gpcid:15161194630197333409,mid:576462203681451716,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 24,
+   "title": "Change Your Magentism, Change Your Life",
+   "source": "Blissful Yogi",
+   "price": "₹750",
+   "extracted_price": 750,
+   "old_price": "Usually ₹1,380",
+   "extracted_old_price": 1380,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:16831717853578030554,productid:6939117642628816858,headlineOfferDocid:225713335770361555,imageDocid:12254868710302919081,rds:PC_10062819236515602077|PROD_PC_10062819236515602077,gpcid:10062819236515602077,mid:576462235200890752,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.7,
+   "reviews": 1
+  },
+  {
+   "position": 25,
+   "title": "Smarter Not Harder",
+   "source": "amazon.in",
+   "price": "₹380",
+   "extracted_price": 380,
+   "old_price": "Usually ₹1,627",
+   "extracted_old_price": 1627,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:17140044177072471327,productid:15150524882100403109,headlineOfferDocid:14419077772202355486,imageDocid:14700063176301056614,rds:PC_13739346578350933933|PROD_PC_13739346578350933933,gpcid:13739346578350933933,mid:576462712104955785,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 1
+  },
+  {
+   "position": 26,
+   "title": "Somatics in Action (eBook)",
+   "source": "amazon.in",
+   "price": "₹4,735.75",
+   "extracted_price": 4735.75,
+   "old_price": "Usually ₹9,899",
+   "extracted_old_price": 9899,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:13891879212782503377,productid:3290663613283420645,headlineOfferDocid:13649882568662209133,imageDocid:11728740939917292709,rds:PC_3697936130453188099|PROD_PC_3697936130453188099,gpcid:3697936130453188099,mid:576462403475409775,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 2.9,
+   "reviews": 1
+  },
+  {
+   "position": 27,
+   "title": "Stop & Think | Bookscape",
+   "source": "amazon.in",
+   "price": "₹893",
+   "extracted_price": 893,
+   "old_price": "Usually ₹1,188",
+   "extracted_old_price": 1188,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:5911201062834332426,productid:7397421997192454641,headlineOfferDocid:8014669449005839729,imageDocid:3943077934701462817,gpcid:14337219077213128865,mid:576460832465175894,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 28,
+   "title": "Attitude! : Your magical power to achieve a life changing success",
+   "source": "amazon.in",
+   "price": "₹875",
+   "extracted_price": 875,
+   "old_price": "₹1,093",
+   "extracted_old_price": 1093,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:18443028932011762314,productid:8540881365136802171,headlineOfferDocid:17476707923416231772,imageDocid:9642345393397305698,gpcid:10209729798872847989,mid:576462687541735804,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 29,
+   "title": "Modern Abc Plus - Physics, Class -11 Part 1 & 2 Paperback",
+   "source": "Kopykitab.com",
+   "price": "₹625",
+   "extracted_price": 625,
+   "old_price": "Usually ₹943",
+   "extracted_old_price": 943,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:9898327846697551475,productid:5644006519598026528,headlineOfferDocid:18118960658795130794,imageDocid:1258766960096440915,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 30,
+   "title": "Sound Healing and Chakra Balancing | Bookscape",
+   "source": "atlanticbooks.com",
+   "price": "₹1,569",
+   "extracted_price": 1569,
+   "old_price": "Usually ₹1,867",
+   "extracted_old_price": 1867,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:6023968445347055073,productid:15355881793950226215,headlineOfferDocid:848500990683739585,imageDocid:3183930832228404735,gpcid:10150152970251892589,mid:576462776941538024,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 31,
+   "title": "What If?: The Art of Crushing Anxiety - Paperback",
+   "source": "amazon.in",
+   "price": "₹449",
+   "extracted_price": 449,
+   "old_price": "Usually ₹1,670",
+   "extracted_old_price": 1670,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:15960539003692104220,productid:14710446464124376747,headlineOfferDocid:5288949305545905027,imageDocid:11767806015182359458,gpcid:3904520921812419206,mid:576462369573192112,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 32,
+   "title": "Starlit Bloom: Zodiac Insights Meet Practical Self-Care",
+   "source": "amazon.in",
+   "price": "₹287",
+   "extracted_price": 287,
+   "old_price": "Was ₹449",
+   "extracted_old_price": 449,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=productid:1133948813890965887,headlineOfferDocid:1133948813890965887,imageDocid:8881967189541312047,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 33,
+   "title": "Captain Atom by Cary Bates",
+   "source": "amazon.in",
+   "price": "₹1,310.40",
+   "extracted_price": 1310.4,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:736095296801726212,productid:12844463442009203810,headlineOfferDocid:11824362989547726748,imageDocid:15316734405187128655,gpcid:3402391488016326539,mid:576462303522899225,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 34,
+   "title": "Self Sabotage | Bookscape",
+   "source": "atlanticbooks.com",
+   "price": "₹1,395",
+   "extracted_price": 1395,
+   "old_price": "Usually ₹1,728",
+   "extracted_old_price": 1728,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:8516561256575770102,productid:8699480847367454402,headlineOfferDocid:13268071711522419965,imageDocid:14372357409722836522,gpcid:4693552050394313300,mid:576462718301635729,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 35,
+   "title": "How to Change Any Habit | Bookscape",
+   "source": "amazon.in",
+   "price": "₹1,355",
+   "extracted_price": 1355,
+   "old_price": "Usually ₹1,902",
+   "extracted_old_price": 1902,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:260384910735570065,productid:5982984651283200777,headlineOfferDocid:12751507166486055939,imageDocid:15202517687493325030,gpcid:165007648511001663,mid:576462846937881232,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 36,
+   "title": "Batman Vol. 6: Graveyard Shift (The New 52)",
+   "source": "amazon.in",
+   "price": "₹1,350",
+   "extracted_price": 1350,
+   "old_price": "Was ₹3,711",
+   "extracted_old_price": 3711,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=productid:4275352100910107187,headlineOfferDocid:4275352100910107187,imageDocid:14011496827317401740,rds:PC_6670509204762168769|PROD_PC_6670509204762168769,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.1,
+   "reviews": 1
+  },
+  {
+   "position": 37,
+   "title": "The Stoic Mindset: Living The 10 Principles of Stoicism",
+   "source": "Amazon.in",
+   "price": "₹605.11",
+   "extracted_price": 605.11,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:14167245729907264703,productid:3757866016951174657,headlineOfferDocid:17894931920722256313,imageDocid:15571866493862501243,rds:PC_2215661486799295270|PROD_PC_2215661486799295270,gpcid:2215661486799295270,mid:576462703203856808,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 31,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 38,
+   "title": "Atomic Structure Prediction Of Nanostructures, Clusters And Surfaces",
+   "source": "amazon.in",
+   "price": "₹3,201",
+   "extracted_price": 3201,
+   "old_price": "Usually ₹6,093",
+   "extracted_old_price": 6093,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:6699058499993584258,productid:14812809377234406147,headlineOfferDocid:900350336372770785,imageDocid:384599954062662977,gpcid:10227399612020690960,mid:576460832791151045,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 39,
+   "title": "Buy Change Your Paradigm, Change Your Life by Bob Proctor (paperback)",
+   "source": "Amazon.in",
+   "price": "₹816",
+   "extracted_price": 816,
+   "old_price": "₹1,256",
+   "extracted_old_price": 1256,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:2935391091043475611,productid:4849421893864493745,headlineOfferDocid:14097019946891775332,imageDocid:17883951863960187763,rds:PC_8655951380601872727|PROD_PC_8655951380601872727,gpcid:8655951380601872727,mid:576462442835375500,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.1,
+   "reviews": 1,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 40,
+   "title": "When Saturn Returns",
+   "source": "amazon.in",
+   "price": "₹1,365",
+   "extracted_price": 1365,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Atomic Habits book&prds=catalogid:1574114708213958478,productid:12304214289662609730,headlineOfferDocid:1786624308843979829,imageDocid:12593828005163267859,gpcid:2507995747623665497,mid:576462803122534346,pvt:hg&hl=en&gl=in&udm=28"
+  }
+ ]
+}

@@ -36,6 +36,7 @@ from scraper import (
     get_user_preference,
 )
 from train_agent import load_agent, fine_tune_on_feedback
+from reference_prices import fetch_product_stores, fetch_reference_prices
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants
@@ -52,6 +53,12 @@ MAX_FEEDBACK_SAMPLES = 200        # most recent feedback kept for fine-tuning
 SEARCH_RESULT_LIMIT  = 12
 LIVE_CACHE_TTL_SECONDS = 6 * 3600   # shopping prices barely move in 6 hours
 MAX_LIVE_SEARCHES_PER_SESSION = 15  # distinct live queries per visitor
+# Reference prices (reference_prices.py) cost one SerpAPI search per product,
+# so they're opt-in: set SERPAPI_REFERENCE_PRICES=1 (env var or Streamlit
+# secret). Each live search then uses up to 1 + MAX_REFERENCE_LOOKUPS searches.
+REFERENCE_PRICES_ENABLED = os.environ.get("SERPAPI_REFERENCE_PRICES", "").strip().lower() in ("1", "true", "yes")
+MAX_REFERENCE_LOOKUPS_PER_SEARCH = 5
+REFERENCE_CACHE_TTL_SECONDS = 24 * 3600
 CATEGORIES = [
     "Electronics", "Clothing", "Home & Garden",
     "Sports", "Books", "Toys", "Beauty", "Automotive",
@@ -319,6 +326,26 @@ def fetch_live_cached(query: str, num_results: int, country: str) -> tuple[list[
         return _cached_serpapi_fetch(query.strip().lower(), num_results, country), None
     except LiveSearchFailed as exc:
         return exc.raw_results, exc.reason
+
+
+@st.cache_data(show_spinner=False, ttl=REFERENCE_CACHE_TTL_SECONDS)
+def _cached_product_stores(page_token: str) -> list[dict]:
+    stores, error = fetch_product_stores(page_token)
+    if error:
+        raise LiveSearchFailed([], error)          # not cached — retried next time
+    return stores
+
+
+def _product_stores_cached(page_token: str) -> tuple[list[dict], str | None]:
+    try:
+        return _cached_product_stores(page_token), None
+    except LiveSearchFailed as exc:
+        return [], exc.reason
+
+
+def reference_prices_for(raw_results: list[dict]) -> list:
+    """Reference prices for the first few non-blocked live results (one SerpAPI search each)."""
+    return fetch_reference_prices(raw_results, MAX_REFERENCE_LOOKUPS_PER_SEARCH, fetch=_product_stores_cached)
 
 
 def fetch_quota_exhausted(query: str, num_results: int, country: str) -> tuple[list[dict], str | None]:
@@ -814,6 +841,7 @@ def main() -> None:
                     user_prefs  = st.session_state.user_prefs,
                     country     = st.session_state.country,
                     fetcher     = fetch_quota_exhausted if over_limit else fetch_live_cached,
+                    reference_fn = reference_prices_for if REFERENCE_PRICES_ENABLED and not over_limit else None,
                 )
                 if search["source"] == "live":
                     used.add(live_key)

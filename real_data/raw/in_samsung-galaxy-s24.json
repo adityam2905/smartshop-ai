@@ -1,0 +1,386 @@
+{
+ "query": "Samsung Galaxy S24",
+ "country": "in",
+ "collected": "2026-09-24",
+ "results": [
+  {
+   "position": 1,
+   "title": "Samsung Galaxy S26 5G",
+   "source": "dakauf.eu",
+   "price": "₹93,317.71",
+   "extracted_price": 93317.71,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:12410788759146033622,productid:5121613485996243953,headlineOfferDocid:13843385898233012989,imageDocid:6708692064589643120,rds:PC_1767235362374137003|PROD_PC_1767235362374137003,gpcid:1767235362374137003,mid:576462879193290881,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.3,
+   "reviews": 14000
+  },
+  {
+   "position": 2,
+   "title": "Samsung Galaxy S26 5G",
+   "source": "Samsung.com",
+   "price": "₹1,14,999 now",
+   "extracted_price": 114999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:12410788759146033622,productid:5121613485996243953,headlineOfferDocid:9240940662622844425,imageDocid:6708692064589643120,rds:PC_1767235362374137003|PROD_PC_1767235362374137003,gpcid:1767235362374137003,mid:576462879193290881,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.3,
+   "reviews": 14000,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 3,
+   "title": "Samsung Galaxy S24 FE 5G (8GB RAM, 128GB, Graphite)",
+   "price": "₹29,000+",
+   "extracted_price": 29000,
+   "rating": 5.0,
+   "reviews": 480
+  },
+  {
+   "position": 4,
+   "title": "Samsung Galaxy S24 FE 5G (8GB RAM, 128GB, Mint)",
+   "rating": 5.0,
+   "reviews": 550
+  },
+  {
+   "position": 5,
+   "title": "Samsung Galaxy S24 FE 5G (8GB RAM, 128GB, Blue)",
+   "rating": 3.6,
+   "reviews": 642
+  },
+  {
+   "position": 6,
+   "title": "Samsung Galaxy S24 5g (amber Yellow, 256 Gb, 4000 Mah)",
+   "rating": 3.9,
+   "reviews": 53
+  },
+  {
+   "position": 7,
+   "title": "Samsung Galaxy S24 5g (cobalt Violet, 256 Gb, 4000 Mah)",
+   "price": "₹55,000+",
+   "extracted_price": 55000,
+   "rating": 4.4,
+   "reviews": 37000
+  },
+  {
+   "position": 8,
+   "title": "Samsung Galaxy S24 Ultra 512GB Titanium Gray, Imported",
+   "source": "Design Info",
+   "price": "₹74,999",
+   "extracted_price": 74999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=productid:2739222214338370715,headlineOfferDocid:2739222214338370715,imageDocid:16136503422870481515,rds:PC_4950077602199056236|PROD_PC_4950077602199056236,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 57000,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 9,
+   "title": "Monitor Samsung ls24d304gauxen Full Hd 24",
+   "source": "ubuy.co.in",
+   "price": "₹10,545",
+   "extracted_price": 10545,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:3161139895608496433,productid:4708348253237448186,headlineOfferDocid:13182617097396540696,imageDocid:12878121683194874615,rds:PC_5008687086930242478|PROD_PC_5008687086930242478,gpcid:5008687086930242478,mid:576462892676347787,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 1
+  },
+  {
+   "position": 10,
+   "title": "Recertified - Samsung S24C450 DVI+VGA 1920x1080 24\" Monitor, Black",
+   "source": "desertcart.in",
+   "price": "₹38,374",
+   "extracted_price": 38374,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:17015835374381179490,productid:13834236606706504276,headlineOfferDocid:13514842376585726253,imageDocid:3328160023477603100,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 11,
+   "title": "Rezoni Samsung Galaxy S24 Anti-Yellow Clear Case",
+   "source": "Rezoni",
+   "price": "₹699",
+   "extracted_price": 699,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:289875569026660536,productid:15508461339373932634,headlineOfferDocid:16027418742105691104,imageDocid:18356154782928319645,gpcid:15262633641510203625,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 12,
+   "title": "Display for Samsung Galaxy S24 5G - White (Combo Folder) | Maxbhi",
+   "source": "Maxbhi",
+   "price": "₹3,389",
+   "extracted_price": 3389,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=productid:17183995632197271069,headlineOfferDocid:17183995632197271069,imageDocid:12868113122239343036,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 13,
+   "title": "Samsung Monitor WQHD",
+   "source": "desertcart.in",
+   "price": "₹49,584",
+   "extracted_price": 49584,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:9285769137703312200,productid:16569620144519536067,headlineOfferDocid:355974858984270385,imageDocid:17128947544003504988,rds:PC_7167092063175603637|PROD_PC_7167092063175603637,gpcid:7167092063175603637,mid:576462563317629672,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 76
+  },
+  {
+   "position": 14,
+   "title": "Samsung Full Hd Ips Led Monitor ls24c432gauxen",
+   "source": "desertcart.in",
+   "price": "₹43,349",
+   "extracted_price": 43349,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:7153752524440343575,productid:4626248154177060716,headlineOfferDocid:3356169571951087660,imageDocid:8554078787920863435,rds:PC_2128127952935401804|PROD_PC_2128127952935401804,gpcid:2128127952935401804,mid:576462562968347504,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.9,
+   "reviews": 1
+  },
+  {
+   "position": 15,
+   "title": "Samsung Galaxy S24 Screen",
+   "source": "Touch LCD Baba",
+   "price": "₹16,999",
+   "extracted_price": 16999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:7926945722061709404,productid:11583016423938550531,headlineOfferDocid:359970190394715529,imageDocid:9104347464012062998,gpcid:10595628265698091034,mid:576462567979460135,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 16,
+   "title": "Samsung Back Cover for Samsung Galaxy S24",
+   "source": "Tata Neu",
+   "price": "₹2,054",
+   "extracted_price": 2054,
+   "old_price": "21% off₹2,599",
+   "extracted_old_price": 21,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:11321559494142231497,productid:6825590820679131412,headlineOfferDocid:5956023187200021641,imageDocid:14696837145815753642,gpcid:10274174844553226699,mid:576462898007610232,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 17,
+   "title": "Samsung Curved Full Hd Led Backlit Va Panel 1800r Curvature",
+   "source": "Digihaat",
+   "price": "₹8,990",
+   "extracted_price": 8990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:12117136310762484724,productid:4336112026555373971,headlineOfferDocid:5605172566384744533,imageDocid:12912645343531119433,gpcid:3672214459549473375,mid:576462897330028811,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 18,
+   "title": "Spigen Galaxy S24 Air Skin",
+   "source": "Spigen India",
+   "price": "₹999",
+   "extracted_price": 999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:4559337657181372689,productid:9078107825738313288,headlineOfferDocid:17115454817368866316,imageDocid:3019844604152275744,gpcid:9307001821385609198,mid:576462845898244955,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 19,
+   "title": "S24U Unlocked Phone, 8GB256GB, 6.8-inch Android 14 System Phone, Octa-core Processor6800mAh BatteryBuilt-in StylusFingerprint UnlockFace",
+   "source": "ubuy.co.in",
+   "price": "₹20,538",
+   "extracted_price": 20538,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=productid:12200314857702870906,headlineOfferDocid:12200314857702870906,imageDocid:881785421257257949,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 20,
+   "title": "Samsung S3 Full Hd Led Backlit IPS Panel With D-sub",
+   "source": "Shopsy By Flipkart",
+   "price": "₹7,599",
+   "extracted_price": 7599,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:569875518660828305,productid:294505901856954043,headlineOfferDocid:12232023530873938700,imageDocid:15123182131477129705,rds:PC_12493080061879590471|PROD_PC_12493080061879590471,gpcid:12493080061879590471,mid:576462567278790895,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 113,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 21,
+   "title": "Samsung Galaxy S25 Plus 5G",
+   "source": "desertcart.in",
+   "price": "₹2,22,306",
+   "extracted_price": 222306,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:15110207099013203404,productid:16616154273149478780,headlineOfferDocid:5998796355750453542,imageDocid:14808748785768783805,rds:PC_14613752632535578308|PROD_PC_14613752632535578308,gpcid:14613752632535578308,mid:576462820635610867,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.3,
+   "reviews": 26000
+  },
+  {
+   "position": 22,
+   "title": "Samsung S24E310HL Monitor",
+   "source": "ubuy.co.in",
+   "price": "₹35,758",
+   "extracted_price": 35758,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:14324974600086091423,productid:302381556578667369,headlineOfferDocid:7773827677884403928,imageDocid:248474530280297128,rds:PC_153536514140552862|PROD_PC_153536514140552862,gpcid:153536514140552862,mid:576462894445401410,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 1
+  },
+  {
+   "position": 23,
+   "title": "Samsung computer monitor 1920 x 1080 pixels full hd",
+   "source": "ubuy.co.in",
+   "price": "₹34,386",
+   "extracted_price": 34386,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:15376399510251424675,productid:11411237911520893411,headlineOfferDocid:11357459704072073164,imageDocid:18192909356343555484,rds:PC_12986000686857188965|PROD_PC_12986000686857188965,gpcid:5208038957327332603,mid:576462531552961494,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.5,
+   "reviews": 1
+  },
+  {
+   "position": 24,
+   "title": "Samsung Galaxy S24 Ultra Smart View Wallet Case",
+   "source": "desertcart.in",
+   "price": "₹10,421",
+   "extracted_price": 10421,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:6973291100942713508,productid:10524687690760132682,headlineOfferDocid:10443752609559498421,imageDocid:16718563422349333792,rds:PC_10854173934519361766|PROD_PC_10854173934519361766,gpcid:10854173934519361766,mid:576462775710413504,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 1200,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 25,
+   "title": "Samsung S4 60.96 cm 24 Inch Full Hd IPS Panel Eye Saver Mode, Flicker Free, Height Adjustable Stand, Borderless Display Monitor Ls24c430gawxxl",
+   "source": "Flipkart",
+   "price": "₹11,499",
+   "extracted_price": 11499,
+   "old_price": "41% off₹19,500",
+   "extracted_old_price": 41,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:15754874003682439947,productid:1656756343732875012,headlineOfferDocid:16661876706624204228,imageDocid:9594747788206229101,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery by Tue"
+  },
+  {
+   "position": 26,
+   "title": "Samsung Galaxy S24 (SM-S921B) - Used Amoled Display Combo Folder",
+   "source": "iService India",
+   "price": "₹11,429",
+   "extracted_price": 11429,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=productid:14696543191679378627,headlineOfferDocid:14696543191679378627,imageDocid:11007423525772967278,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 27,
+   "title": "Samsung Galaxy S25 Edge 5G",
+   "source": "ubuy.co.in",
+   "price": "₹83,148",
+   "extracted_price": 83148,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:2406351329234296723,productid:17241032199504352676,headlineOfferDocid:15167886463838255172,imageDocid:7829452854029791102,rds:PC_7595382899491641637|PROD_PC_7595382899491641637,gpcid:5284187792860746827,mid:576462862864753816,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 3100
+  },
+  {
+   "position": 28,
+   "title": "Samsung Galaxy S25 5G",
+   "source": "ubuy.co.in",
+   "price": "₹1,11,264",
+   "extracted_price": 111264,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:8345456040034500457,productid:418592643557248422,headlineOfferDocid:4700480554850648697,imageDocid:1086178762528046687,rds:PC_13653863667168722766|PROD_PC_13653863667168722766,gpcid:13653863667168722766,mid:576462898839440180,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 58000
+  },
+  {
+   "position": 29,
+   "title": "Samsung Galaxy S25 5G",
+   "source": "Croma",
+   "price": "₹80,999",
+   "extracted_price": 80999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:13007978734608367351,productid:16270839244596530259,headlineOfferDocid:2427689233704943529,imageDocid:10549696867956011535,rds:PC_13653863667168722766|PROD_PC_13653863667168722766,gpcid:7998131059683023653,mid:576462859883472853,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 58000
+  },
+  {
+   "position": 30,
+   "title": "Samsung S24C310EAU computer monitor 61 cm 1920 x 1080 pixels Full Hd Led Black LS24C310EAUXEN",
+   "source": "Tradeindia.com",
+   "price": "₹38,000",
+   "extracted_price": 38000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:3678737775242245069,productid:4487589016825108395,headlineOfferDocid:11756435920456002322,imageDocid:16941125197162279745,rds:PC_401804200836129600|PROD_PC_401804200836129600,gpcid:401804200836129600,mid:576462498633334945,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 279,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 31,
+   "title": "Samsung Galaxy S25 FE 5G",
+   "source": "Samsung.com",
+   "price": "₹89,999",
+   "extracted_price": 89999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:2099429291070095796,productid:11755160624584809526,headlineOfferDocid:12252326551822801786,imageDocid:9547167654360655119,rds:PC_5931833650059057744|PROD_PC_5931833650059057744,gpcid:5931833650059057744,mid:576462567546664190,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.9,
+   "reviews": 1.2,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 32,
+   "title": "Global version S24 Ultra Global 5G Edition Smart 7.3′′ Large Screen Android 14 Snapdragon10 core 8 gen3 72108MP Memory 16GB1TB 8000mAh",
+   "source": "ubuy.co.in",
+   "price": "₹20,571",
+   "extracted_price": 20571,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=productid:13677472038852124541,headlineOfferDocid:13677472038852124541,imageDocid:3899247705141427007,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 33,
+   "title": "Samsung Galaxy S25 FE 5G",
+   "source": "Samsung.com",
+   "price": "₹77,999",
+   "extracted_price": 77999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:2099429291070095796,productid:11755160624584809526,headlineOfferDocid:17614915127586459949,imageDocid:9547167654360655119,rds:PC_5931833650059057744|PROD_PC_5931833650059057744,gpcid:5931833650059057744,mid:576462567546664190,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.9,
+   "reviews": 1.2,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 34,
+   "title": "Samsung Galaxy S25 FE 5G",
+   "source": "Shopsy By Flipkart",
+   "price": "₹77,999",
+   "extracted_price": 77999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:2099429291070095796,productid:11755160624584809526,headlineOfferDocid:3018520252939326731,imageDocid:9547167654360655119,rds:PC_5931833650059057744|PROD_PC_5931833650059057744,gpcid:5931833650059057744,mid:576462567546664190,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 3.9,
+   "reviews": 1.2,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 35,
+   "title": "Onyx Oasis Samsung Galaxy",
+   "source": "Opulenté",
+   "price": "₹5,500",
+   "extracted_price": 5500,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:4931427047867380118,productid:10756843678691378948,headlineOfferDocid:14135144710124629209,imageDocid:13881247654290196286,gpcid:3918641470472183120,mid:576462551048798012,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 36,
+   "title": "Samsung Galaxy S25 5G Snapdragon 8 Elite for Galaxy",
+   "source": "Amazon.in",
+   "price": "₹67,960",
+   "extracted_price": 67960,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:2711225771364456497,productid:16793991500883788836,headlineOfferDocid:16954454928616376976,imageDocid:18250772051230182131,gpcid:5473911657365105054,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 37,
+   "title": "2024 new S24Ultra 3 64 cross-border smart phone HD screen cross-border one ozon generation",
+   "source": "ubuy.co.in",
+   "price": "₹9,596",
+   "extracted_price": 9596,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=productid:3048359325283515402,headlineOfferDocid:3048359325283515402,imageDocid:7043396264146237602,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 38,
+   "title": "Samsung Galaxy S25 5G (Silver Shadow, 12GB RAM, 128GB Storage) | Snapdragon 8 Elite for Galaxy Processor | 50MP Triple Camera | 6.2-inch Dynamic",
+   "source": "Amazon.in",
+   "price": "₹62,900",
+   "extracted_price": 62900,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:12866688366306379277,productid:8429954914604709769,headlineOfferDocid:13291943918347333925,imageDocid:6379413953770185047,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 39,
+   "title": "Samsung Galaxy S25 Edge 5G",
+   "source": "Amazon.in",
+   "price": "₹73,000",
+   "extracted_price": 73000,
+   "old_price": "Usually ₹81,999",
+   "extracted_old_price": 81999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:2406351329234296723,productid:17241032199504352676,headlineOfferDocid:15525121538144080727,imageDocid:7829452854029791102,rds:PC_7595382899491641637|PROD_PC_7595382899491641637,gpcid:5284187792860746827,mid:576462862864753816,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 3100,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 40,
+   "title": "Samsung Galaxy S25 5G",
+   "source": "Croma",
+   "price": "₹80,999",
+   "extracted_price": 80999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=Samsung Galaxy S24&prds=catalogid:13007978734608367351,productid:16270839244596530259,headlineOfferDocid:15177276686551993500,imageDocid:10549696867956011535,rds:PC_13653863667168722766|PROD_PC_13653863667168722766,gpcid:7998131059683023653,mid:576462859883472853,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 58000
+  }
+ ]
+}

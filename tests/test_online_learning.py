@@ -21,16 +21,19 @@ RECOMMEND, SKIP = 1, 0
 
 # [normalized_price, discount, trust, user_pref]
 TRUSTED_BIG_DISCOUNT   = np.array([0.30, 0.70, 1.00, 0.5], dtype=np.float32)   # real Amazon, 70% off
-TRUSTED_SMALL_DISCOUNT = np.array([0.80, 0.20, 0.95, 0.5], dtype=np.float32)
-SMALL_SHOP_DISCOUNT    = np.array([0.75, 0.25, 0.55, 0.5], dtype=np.float32)   # unknown-but-clean shop
+TRUSTED_SMALL_DISCOUNT = np.array([0.75, 0.25, 0.95, 0.5], dtype=np.float32)   # 25% off: clears the 0.90× bar
+SMALL_SHOP_DISCOUNT    = np.array([0.72, 0.28, 0.60, 0.5], dtype=np.float32)   # unknown-but-clean shop
+TRUSTED_NOT_ENOUGH_OFF = np.array([0.95, 0.05, 0.95, 0.5], dtype=np.float32)   # 5% off: below the bar
+MID_TIER_DEAL          = np.array([0.45, 0.55, 0.80, 0.5], dtype=np.float32)   # known mid-tier shop, 55% off
 SCAM_BIG_DISCOUNT      = np.array([0.30, 0.70, 0.10, 0.5], dtype=np.float32)
 SCAM_SMALL_DISCOUNT    = np.array([0.80, 0.20, 0.10, 0.5], dtype=np.float32)   # "believable" scam
 # Middling trust (passes the trust < 0.3 hard rule) but priced at a quarter
 # of market — the refurbished-iPhone-at-₹18,499 pattern seen in live results
 POLISHED_SCAM          = np.array([0.25, 0.75, 0.55, 0.5], dtype=np.float32)
 TRUSTED_OVERPRICED     = np.array([1.30, 0.05, 0.95, 0.5], dtype=np.float32)
-AT_MARKET_LOVED        = np.array([1.00, 0.00, 0.95, 0.9], dtype=np.float32)
-AT_MARKET_UNWANTED     = np.array([1.00, 0.00, 0.95, 0.1], dtype=np.float32)
+MODEST_DEAL_LOVED      = np.array([0.84, 0.16, 0.95, 0.9], dtype=np.float32)
+MODEST_DEAL_UNWANTED   = np.array([0.84, 0.16, 0.95, 0.1], dtype=np.float32)
+AT_MARKET_LOVED        = np.array([1.00, 0.00, 0.95, 1.0], dtype=np.float32)
 
 
 @pytest.fixture(scope="module")
@@ -79,9 +82,15 @@ def test_pretrained_model_skips_overpriced_listings_even_from_trusted_sellers(pr
 
 
 def test_pretrained_model_uses_the_preference_score(pretrained):
-    """Same at-market listing: recommended in a loved category, not in an unwanted one."""
-    assert act(pretrained, AT_MARKET_LOVED) == RECOMMEND
-    assert act(pretrained, AT_MARKET_UNWANTED) == SKIP
+    """Same modest deal: recommended in a loved category, not in an unwanted one."""
+    assert act(pretrained, MODEST_DEAL_LOVED) == RECOMMEND
+    assert act(pretrained, MODEST_DEAL_UNWANTED) == SKIP
+
+
+@pytest.mark.parametrize("obs", [TRUSTED_NOT_ENOUGH_OFF, AT_MARKET_LOVED])
+def test_pretrained_model_needs_at_least_10_percent_off(pretrained, obs):
+    """Trusted seller, but not ≤ 0.90× market → skip, even in a loved category."""
+    assert act(pretrained, obs) == SKIP
 
 
 # ── Online fine-tuning ──────────────────────────────────────────────────────
@@ -106,8 +115,11 @@ def test_repeated_dislikes_flip_that_item_but_do_not_collapse_the_policy(model, 
         fine_tune_on_feedback(model, pretrained, feedback, gradient_steps=50)
 
     assert act(model, TRUSTED_SMALL_DISCOUNT) == SKIP
+    # Unrelated listings keep their decisions. (A near-identical listing —
+    # e.g. a small shop at 0.68× vs the disliked 0.65× — may flip too; that's
+    # the dislike generalising, not the policy collapsing.)
     assert act(model, TRUSTED_BIG_DISCOUNT) == RECOMMEND
-    assert act(model, SMALL_SHOP_DISCOUNT) == RECOMMEND
+    assert act(model, MID_TIER_DEAL) == RECOMMEND
     assert act(model, SCAM_BIG_DISCOUNT) == SKIP
     assert act(model, POLISHED_SCAM) == SKIP
 

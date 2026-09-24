@@ -31,4 +31,5 @@ DQN_HYPERPARAMS = dict(
     verbose              = 0,           # suppress SB3 internal logs (we use our callback)
     tensorboard_log      = LOG_DIR,
     device               = "auto",
+    seed                 = 0,           # reproducible: re-running train_agent.py gives the same model
 )

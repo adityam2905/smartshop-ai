@@ -43,7 +43,7 @@ def test_reward_function_matrix(tiny_csv):
             assert reward_skip == pytest.approx(10.0)
             assert "skipped" in reason_skip.lower()
         else:
-            # Legit row: price 0.8× market, neutral preference → 20 × 0.2 = 4.
+            # Legit row: price 0.7× market, neutral preference → 20 × (0.9 − 0.7) = 4.
             # user_feedback_score defaults to 0.0 for a fresh env.
             assert reward_recommend == pytest.approx(4.0)
             assert reason_recommend.startswith("Good recommendation")
@@ -52,14 +52,21 @@ def test_reward_function_matrix(tiny_csv):
 
 
 @pytest.mark.parametrize("price_ratio, preference, expected", [
-    (0.80, 0.5,  4.0),     # 20% below market
-    (1.00, 0.5,  0.0),     # at market, neutral preference
-    (1.25, 0.5, -5.0),     # overpriced
-    (1.00, 0.9,  4.0),     # at market, but a category the user loves
-    (0.90, 0.1, -2.0),     # a bit cheap, but a category the user avoids
+    (0.60, 0.5,  6.0),     # 40% below market
+    (0.90, 0.5,  0.0),     # exactly at the 10%-off threshold: break-even
+    (0.95, 0.5, -1.0),     # only 5% off: not a deal
+    (1.25, 0.5, -7.0),     # overpriced
+    (0.80, 0.9,  6.0),     # a deal in a category the user loves
+    (0.80, 0.1, -2.0),     # a deal, but in a category the user avoids
 ])
 def test_deal_value_rewards_real_price_and_preference(price_ratio, preference, expected):
     assert ShoppingEnv.deal_value(price_ratio, preference) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("price_ratio", [0.91, 0.95, 1.0])
+def test_preference_never_lifts_a_listing_above_the_deal_threshold(price_ratio):
+    """Recommend only at ≤ 0.90× market — however much the user likes the category."""
+    assert ShoppingEnv.deal_value(price_ratio, user_preference=1.0) < 0
 
 
 def test_recommending_an_overpriced_legit_listing_is_penalised(tiny_csv):

@@ -25,21 +25,89 @@ that knows every listing's true label.
 
 | Policy | Decision accuracy | Return vs. oracle | Scams recommended | Good deals missed |
 |---|---|---|---|---|
-| Hard rule: block trust < 0.3, recommend the rest | 72% | negative | 44% | 0% |
-| Hard rule + recommend only below-market prices | 89% | negative | 44% | 0% |
-| Linear contextual bandit | 58% | 61% | 0% | 38% |
-| **DQN** | **98%** | **98%** | **0.1–0.2%** | **1%** |
+| Hard rule: block trust < 0.3, recommend the rest | 59% | negative | 44% | 0% |
+| Hard rule + recommend only at ≤ 0.90× market | 89% | negative | 44% | 0% |
+| Linear contextual bandit | 63% | 62% | 0% | 31% |
+| **DQN** | **95%** | **98%** | **0.1%** | **1%** |
 
 The rules recommend almost half the scams (the polished ones pass the trust
 check), which is why their return is negative despite decent accuracy. The
-linear bandit avoids scams by being so cautious it misses 38% of good deals.
+linear bandit avoids scams by being so cautious it misses 31% of good deals.
 The DQN gets both right because it learns to *combine* trust with price: a
-mid-trust shop is fine at 0.9× market and a scam at 0.25×.
+mid-trust shop is fine at 0.8× market and a scam at 0.25×.
 
-On real results — a live Google Shopping India search for "iPhone 15" — it
-recommended Flipkart at 0.73× market and a Cashify refurbished unit at 0.54×,
-skipped imported listings above market, and skipped an unknown seller's
-refurbished iPhone at ₹18,499 (0.23× market).
+### On real listings
+
+`evaluate_real.py` runs the deployed pipeline on **101 hand-labelled real
+Google Shopping India listings** from 14 searches (`real_data/`, collected
+September 2026). Each listing was labelled — before the model was run on it —
+for whether the seller is trustworthy and whether the price beats the usual
+price for that exact variant. Labels were drafted with AI assistance (web
+checks of each unfamiliar seller, reasons in the `notes` column) and reviewed
+by the author.
+
+Only 19 of the 101 listings are good deals, so **accuracy is misleading
+here — recommending nothing scores 81%**. Precision, recall and F1 are the
+numbers that matter.
+
+**Deployed model** (recommends only at ≤ 0.90× market, i.e. ≥ 10% off):
+
+| Policy | Accuracy [95% CI] | Precision | Recall | F1 | Bad sellers recommended |
+|---|---|---|---|---|---|
+| Recommend nothing | 81% | — | 0% | 0% | 0 / 5 |
+| Recommend everything / trust rule | 19% [12–28] | 19% | 100% | 32% | 5 / 5 |
+| Trust rule + ≤ 0.90× market | 74% [65–82] | 38% | 58% | 46% | 3 / 5 |
+| Trust rule + ≤ 0.90× market, with reference prices | 78% [69–85] | 45% | 74% | 56% | 3 / 5 |
+| **DQN, as deployed** (in-search price estimates) | **77% [68–84]** | **41%** | **47%** | **44%** | **0 / 5** |
+| DQN + reference prices (60 of 101 listings) | 70% [61–78] | 28% | 37% | 32% | 0 / 5 |
+
+**Discount threshold sweep** — one DQN retrained per threshold, in-search
+price estimates:
+
+| Recommend at ≥ … off | DQN precision | DQN recall | DQN F1 | Price rule F1 | Bad sellers (DQN / rule) |
+|---|---|---|---|---|---|
+| 5% | 25% | 53% | 34% | 47% | 1 / 4 |
+| 10% (sweep run) | 41% | 58% | 48% | 46% | 1 / 3 |
+| **10% (deployed, seed 0)** | **41%** | **47%** | **44%** | 46% | **0** / 3 |
+| 15% | 40% | 42% | 41% | 50% | 1 / 3 |
+| 20% | 58% | 37% | 45% | 48% | 0 / 3 |
+
+- **10% vs 20% is a trade-off, not a win.** A higher bar makes the DQN more
+  precise and less complete; 10% was chosen to surface more deals (47% of
+  them vs 37%) at the cost of precision (41% vs 58%).
+- **Training noise is as large as the threshold effect.** The two 10% rows
+  are the same threshold and data, different training runs, and differ by
+  4 F1 points — about the spread across thresholds. Training is now seeded,
+  so `train_agent.py` reproduces the deployed model exactly.
+- **The price rule finds deals about as well but recommends most of the bad
+  sellers** — the DQN's value is its caution about sellers.
+
+**How it got here** (each step measured on the same labels):
+
+| Change | DQN precision | DQN recall | DQN F1 |
+|---|---|---|---|
+| First real-data run | 30% | 63% | 41% |
+| Compare each listing only with the same product | 25% | 53% | 34% |
+| Recommend only at ≤ 0.80× market (retrained) | 58% | 37% | 45% |
+| **Recommend only at ≤ 0.90× market** (retrained, deployed) | **41%** | **47%** | **44%** |
+
+- **The big win was the reward.** The old reward broke even at the normal
+  price, so the agent recommended trusted sellers at no discount (29 of 40
+  recommendations were no real deal). Requiring a real discount fixed that.
+- **Reference prices** (the median price of the same product at other
+  stores) help the price rule (F1 46% → 56%) but hurt the DQN (44% → 32%) —
+  probably because prices measured against other stores are distributed
+  differently from the synthetic data it was trained on (untested).
+- **Most remaining misses are unknown sellers with big discounts:** 8 of the
+  10 missed deals. The agent recommends unknown (trust 0.5) sellers at 10–30%
+  off but not deeper — a deep discount from an unknown seller is exactly the
+  polished-scam pattern it was trained to avoid (e.g. StockX at 0.45×).
+- **Scams:** 0 of 5 untrustworthy sellers recommended and 0 legit sellers
+  blocked, with or without reference prices.
+
+These 101 listings were used to diagnose and tune the steps above, so they
+are a development set and these numbers are optimistic; a fresh set of
+searches is the fair test.
 
 ---
 
@@ -57,10 +125,12 @@ python scraper.py "Sony Headphones" --mock         # features, seller and trust 
 python scraper.py "iPhone 15" --country in         # same, live (needs SERPAPI_KEY)
 python bandit_baseline.py --compare-dqn            # baselines, see below
 python supervised_baseline.py
+python evaluate_real.py                            # real labelled listings (offline)
+python collect_real_listings.py                    # fetch more (spends SerpAPI searches)
 ```
 
 **Live vs. demo data.** For live Google Shopping results, get a key at
-[serpapi.com](https://serpapi.com) (100 free searches/month) and
+[serpapi.com](https://serpapi.com) (250 free searches/month) and
 `export SERPAPI_KEY="..."`. Pick the country (US, India, UK, Canada,
 Australia) in the sidebar; prices show in that country's currency, and
 `SERPAPI_COUNTRY=in` sets the default. Without a key, the app uses built-in
@@ -72,7 +142,7 @@ used up, network error), the app says why and shows demo data instead.
 
 ```bash
 pip install -r requirements-test.txt && pytest -v    # lean: no torch
-pip install -r requirements.txt && pytest -v         # everything (132 tests)
+pip install -r requirements.txt && pytest -v         # everything (188 tests)
 ```
 
 CI runs both: a fast job without torch, and a `test-full` job with CPU-only
@@ -96,6 +166,8 @@ SerpAPI, so no key or network is needed.
 | `app.py` | Streamlit UI, inference, Like/Dislike loop, quota protection |
 | `evaluation.py` | Shared scoring harness for the DQN, bandit and rules |
 | `bandit_baseline.py`, `supervised_baseline.py` | Baselines (see below) |
+| `collect_real_listings.py`, `evaluate_real.py`, `real_data/` | Real-listing collection, labels, and evaluation |
+| `reference_prices.py` | Usual price of a product across stores (SerpAPI product pages) |
 
 ### RL design
 
@@ -113,16 +185,21 @@ SerpAPI, so no key or network is needed.
 | Situation | Reward |
 |---|---|
 | Recommend + Scam | **-100** |
-| Recommend + Legit | `20 × (1 − normalized_price) + 10 × (preference − 0.5)` |
+| Recommend + Legit, price ≤ 0.90× market | `20 × (0.90 − normalized_price) + 10 × (preference − 0.5)` |
+| Recommend + Legit, price > 0.90× market | negative (≤ −1), whatever the preference |
 | Skip + Scam | **+10** |
 | Skip + Legit | 0 |
 
-Recommending a legit listing pays off only if it's actually below market or
-in a category you like — an overpriced listing from a trusted retailer costs
-reward, so the agent has to judge deal quality, not just avoid scams.
+A listing is only worth recommending at **10% or more below the market
+price** (`ShoppingEnv.DEAL_THRESHOLD`, chosen from a 5–20% sweep on real
+listings); preference can make the agent pickier about a deal but never
+lowers that bar. (The reward used to break even at 1.0×, so the agent
+recommended trusted sellers at their normal price — 29 of its 40
+recommendations on real listings were no real deal.)
 
 **Hyperparameters:** 128→128 MLP · LR 5e-4 · γ 0.97 · batch 64 · replay
-buffer 100k · ε 1.0 → 0.02 over 20% of training · target update every 1,000 steps.
+buffer 100k · ε 1.0 → 0.02 over 20% of training · target update every 1,000 steps ·
+seed 0 (training is reproducible).
 
 **Training data** is built so no single feature decides the answer:
 
@@ -159,10 +236,27 @@ third-party shops, so they're HTML-escaped and only `http(s)` links render.
 ### Market price
 
 `normalized_price` needs a market price to compare against
-(`estimate_market_prices()`): a trusted seller's own list price when it gives
-one, otherwise the median price among **trusted** sellers in the results, and
-the median of everything only as a last resort. Scam lures are excluded on
-purpose — they'd drag the median down and make real retailers look overpriced.
+(`estimate_market_references()`), in order of preference:
+
+0. **A reference price** (`reference_prices.py`): the median price of this
+   exact product across the *other* stores on Google's product page (SerpAPI
+   `google_immersive_product`), excluding hard-blocked stores. The only source
+   that actually knows the usual price — but it costs one SerpAPI search per
+   product, so the app uses it only when `SERPAPI_REFERENCE_PRICES=1`, for up
+   to 5 listings per search, cached for 24 hours.
+1. A trusted seller's own list price ("was ₹34,990").
+2. The median price of **the same product** from trusted sellers, then from
+   any seller that isn't hard-blocked. Two listings count as the same product
+   only if their condition (new vs refurbished/used), tier words (Pro, Max,
+   Plus, Ultra, Elite…), variant attributes (128GB, 30 ml, 45 mm), model codes
+   (RB3025, 15-fb3383AX, LEGO 42172) and model numbers ("Airdopes 141",
+   "Series 11") agree.
+3. Nothing comparable → no price signal (1.0×), unless the price is below 40%
+   of the search's trusted median — suspicious whatever the product.
+
+Scam lures never set the reference for anyone else. Each listing records
+which basis it used (`market_basis`), and `evaluate_real.py` prints it next to
+every mistake.
 
 ### Online learning
 
@@ -216,6 +310,11 @@ results.
 - **SerpAPI quota:** raw live results are cached for 6 hours across all
   visitors (failures aren't cached), and each session gets 15 distinct live
   searches before falling back to demo data with a notice.
+- **Reference prices** (optional, off by default): add
+  `SERPAPI_REFERENCE_PRICES = "1"` to Secrets. Each new search then costs up
+  to 6 SerpAPI searches instead of 1 — and with the current model they
+  *lower* its F1 on real listings (see [On real listings](#on-real-listings)),
+  so leave them off unless the model is retrained for them.
 - **Updating the model:** retrain, commit `dqn_shopping_agent.zip`, push,
   then **Reboot app** from the dashboard. The model is held in
   `st.cache_resource`, so a running app keeps the old one until it restarts.
@@ -228,20 +327,25 @@ results.
 ## Limitations
 
 1. **It's a contextual bandit framed as an MDP** — see [Baselines](#baselines).
-2. **The training data is still synthetic.** It's designed to be realistic —
-   overlapping trust, overlapping claimed discounts, overpriced legit
-   listings — but the model has only been checked on a handful of real
-   searches, not a labelled set of real listings. The 98% is on data drawn
-   from the same generator.
-3. **"Market price" is estimated from one search's results.** A search that
-   mixes very different products (a phone and its case) gives a poor
-   reference, and a search with few trusted sellers falls back to the median
-   of everything.
-4. **Trust is a hand-built heuristic.** An unknown seller gets 0.5 however
-   reputable it is, and a scam on a clean-looking domain needs an implausible
-   price to be caught.
-5. **Preferences are in-memory** and reset when the session ends.
-6. **Live search shares one quota** of 100 searches/month across all visitors;
+2. **Strong on synthetic data, modest on real data.** 95% accuracy on
+   synthetic data; on 101 real labelled listings, F1 44% for finding deals
+   (41% precision, 47% recall) — no better than a simple price rule, though
+   far safer about sellers (see [On real listings](#on-real-listings)). The
+   real set is small, has only 5 bad sellers, and was used for development;
+   differences of a few points are within training-run noise.
+3. **It misses deep discounts from unknown sellers.** It recommends only at
+   ≥ 10% off, and treats a big discount from a seller the trust scorer
+   doesn't know as a likely scam — 8 of its 10 missed real deals. About half
+   of real good deals get shown, and 4 in 10 recommendations are real deals.
+4. **Trust is a hand-built heuristic.** Unknown sellers — including many
+   genuine brand stores — get 0.5, and unknown `.in`/`.com` shops can score
+   above 0.6 whatever their reputation. A proper seller-reputation source
+   would help both recall and scam detection.
+5. **Reference prices cost quota.** One SerpAPI search per product, so they're
+   off by default in the app and cover ~60% of listings when on (the rest
+   aren't sold by any other store Google lists).
+6. **Preferences are in-memory** and reset when the session ends.
+7. **Live search shares one quota** of 250 searches/month across all visitors;
    caching and the per-session limit slow that down but don't remove it.
 
 ### Fixed bugs
@@ -265,6 +369,9 @@ results.
   for Google Shopping is a Google page, so every live seller got the same score.
 - **Skewed market price:** the plain median of all results was dragged down by
   scam lures, making genuine retailers look overpriced.
+- **Misread list prices:** for "32% off₹34,990", SerpAPI's numeric old price
+  is 32 (the percentage), so real list prices were discarded. Found in the
+  real-data evaluation.
 - **Quota drain:** search results were cached for 5 minutes and keyed on the
   user's preferences, so every Like/Dislike cost another SerpAPI search.
 - **Silent fallback to demo data:** failed live searches (including SerpAPI's

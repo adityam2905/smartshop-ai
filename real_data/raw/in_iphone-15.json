@@ -1,0 +1,405 @@
+{
+ "query": "iPhone 15",
+ "country": "in",
+ "collected": "2026-09-24",
+ "results": [
+  {
+   "position": 1,
+   "title": "Apple iPhone 15",
+   "source": "Flipkart",
+   "price": "₹59,900",
+   "extracted_price": 59900,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:15785253736106745943,productid:6746962392806557762,headlineOfferDocid:3652161252930486937,imageDocid:16409709520162893247,rds:PC_6601648695432433635|PROD_PC_6601648695432433635,gpcid:6601648695432433635,mid:576462758755759090,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 30000,
+   "delivery": "Free delivery by Tue"
+  },
+  {
+   "position": 2,
+   "title": "Apple iPhone 15 Plus",
+   "source": "EMI Snapmint",
+   "price": "₹48,199",
+   "extracted_price": 48199,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:7991829112168492419,productid:11492613557542721625,headlineOfferDocid:575533677217015002,imageDocid:3073944492404446314,rds:PC_4702526954592161872|PROD_PC_4702526954592161872,gpcid:4702526954592161872,mid:576462756293218671,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 9200,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 3,
+   "title": "Apple iPhone 15 Pro Max",
+   "source": "Cashify",
+   "price": "₹82,499",
+   "extracted_price": 82499,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:2599574324981893862,productid:4972869621501417845,headlineOfferDocid:3535546537264526072,imageDocid:6636992886883810331,rds:PC_6285855430991265102|PROD_PC_6285855430991265102,gpcid:3771882326689571212,mid:576462567056091662,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 9300,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 4,
+   "title": "Apple iPhone 15 Pro",
+   "source": "desertcart.in",
+   "price": "₹1,01,559",
+   "extracted_price": 101559,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:3225823599495019368,productid:12337596112653343762,headlineOfferDocid:4973585066128325434,imageDocid:1599016285284903293,rds:PC_8155392194501963224|PROD_PC_8155392194501963224,gpcid:8155392194501963224,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.5,
+   "reviews": 6,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 5,
+   "title": "Apple iPhone 15 – Refurbished Certified – AS-IS Grade | 256GB | Black – by Ovantica",
+   "source": "Ovantica.com",
+   "price": "₹18,499",
+   "extracted_price": 18499,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:3968508903264891762,headlineOfferDocid:3968508903264891762,imageDocid:15788927624656458560,rds:PC_6601648695432433635|PROD_PC_6601648695432433635,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 30000,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 6,
+   "title": "iPhone 15 (128GB_Blue)",
+   "source": "SS Mobile",
+   "price": "₹69,900",
+   "extracted_price": 69900,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:11432577924314111884,headlineOfferDocid:11432577924314111884,imageDocid:16850814165562711282,rds:PC_6601648695432433635|PROD_PC_6601648695432433635,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 30000
+  },
+  {
+   "position": 7,
+   "title": "Apple iPhone 15 Pro Max 256GB",
+   "source": "EMI Snapmint",
+   "price": "₹81,599",
+   "extracted_price": 81599,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:11337896240160481350,productid:5436847981740539926,headlineOfferDocid:8223974816121483907,imageDocid:12025039913335026304,rds:PC_12795037018121803266|PROD_PC_12795037018121803266,gpcid:12795037018121803266,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 1400,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 8,
+   "title": "Apple iPhone 15 (128 GB) - Negro",
+   "source": "ubuy.co.in",
+   "price": "₹89,164",
+   "extracted_price": 89164,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:4775945629751102225,headlineOfferDocid:4775945629751102225,imageDocid:14195558829100895039,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 9,
+   "title": "Refurbished Apple iPhone 15 Blue by Cashify",
+   "source": "Cashify",
+   "price": "₹44,399",
+   "extracted_price": 44399,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:6700251440599931343,headlineOfferDocid:6700251440599931343,imageDocid:13791168709069157230,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 10,
+   "title": "Apple iPhone 15 128 GB snjallsími",
+   "source": "Darling Retail",
+   "price": "₹74,900",
+   "extracted_price": 74900,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:2726720006560815378,productid:10630260865055612257,headlineOfferDocid:3418898387911235054,imageDocid:16844861117666091760,rds:PC_14516470918508340585|PROD_PC_14516470918508340585,gpcid:14516470918508340585,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.7,
+   "reviews": 371
+  },
+  {
+   "position": 11,
+   "title": "Apple iPhone 15 Pro ( Brand New Sealed Packed )",
+   "source": "Unbox Your Mobile",
+   "price": "₹69,999",
+   "extracted_price": 69999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:1831167105024964662,productid:4771424983953012422,headlineOfferDocid:11232960438993880733,imageDocid:13080328060747569000,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery by Tue"
+  },
+  {
+   "position": 12,
+   "title": "Apple iPhone 15 Pro Max 512GB Smartphone",
+   "source": "EMI Snapmint",
+   "price": "₹93,199",
+   "extracted_price": 93199,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:12173648508116166199,productid:307125948081970946,headlineOfferDocid:14344419135306034911,imageDocid:12025039913335026304,rds:PC_14236872679118244885|PROD_PC_14236872679118244885,gpcid:14236872679118244885,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 27,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 13,
+   "title": "Apple iPhone 15 128GB Blue Fair - Renewed",
+   "source": "Ovantica.com",
+   "price": "₹39,999",
+   "extracted_price": 39999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:9851565308906149005,headlineOfferDocid:9851565308906149005,imageDocid:14771759134916881385,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 14,
+   "title": "Apple iPhone 15 (128GB) Blue | Control Z | Free Gifts",
+   "source": "Control Z",
+   "price": "₹49,499",
+   "extracted_price": 49499,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:4597253735950617007,headlineOfferDocid:4597253735950617007,imageDocid:334006794725776298,rds:PC_13494856834185052070|PROD_PC_13494856834185052070,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 1,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 15,
+   "title": "Apple iPhone 15 Black 48MP Hexa Core 6.1\" iOS Smartphone",
+   "source": "ubuy.co.in",
+   "price": "₹72,571",
+   "extracted_price": 72571,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:1410821672497431942,headlineOfferDocid:1410821672497431942,imageDocid:5602608050843173104,rds:PC_6601648695432433635|PROD_PC_6601648695432433635,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 29000
+  },
+  {
+   "position": 16,
+   "title": "Refurbished Apple iPhone 15 Plus Blue by Cashify",
+   "source": "Cashify",
+   "price": "₹48,599",
+   "extracted_price": 48599,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:9270889534263721623,headlineOfferDocid:9270889534263721623,imageDocid:12917632633822317822,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 17,
+   "title": "Refurbished Apple iPhone 15 (EMI: ₹ 3840 / mon)",
+   "source": "EMI Snapmint",
+   "price": "₹45,699",
+   "extracted_price": 45699,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:10105048596081558066,headlineOfferDocid:10105048596081558066,imageDocid:13028931160220733006,rds:PC_17778578598159806923|PROD_PC_17778578598159806923,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.8,
+   "reviews": 28000,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 18,
+   "title": "iPhone 15 512GB Negro",
+   "source": "FoneZone.com",
+   "price": "₹51,508.21",
+   "extracted_price": 51508.21,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:5015612188481105978,productid:13099921236103193963,headlineOfferDocid:15945076562001589720,imageDocid:2719340175403915614,rds:PC_17042137608687702162|PROD_PC_17042137608687702162,gpcid:5440641643221209389,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.7,
+   "reviews": 211
+  },
+  {
+   "position": 19,
+   "title": "Used Apple iPhone 15 5G 128GB Black",
+   "source": "buy.budli.in",
+   "price": "₹34,999",
+   "extracted_price": 34999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:11057574719178845892,headlineOfferDocid:11057574719178845892,imageDocid:2873496873158314496,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 20,
+   "title": "Apple iPhone 15 – Tested & Verified – Superb Grade | 128GB | Pink – by Ovantica",
+   "source": "Ovantica.com",
+   "price": "₹43,999",
+   "extracted_price": 43999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:8712373172800095017,headlineOfferDocid:8712373172800095017,imageDocid:6688809114972756495,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 21,
+   "title": "Apple iPhone 15 (128 GB) - Mavi",
+   "source": "ubuy.co.in",
+   "price": "₹1,64,554",
+   "extracted_price": 164554,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:17853432306327274100,headlineOfferDocid:17853432306327274100,imageDocid:12599828294434210000,rds:PC_8661511710776568475|PROD_PC_8661511710776568475,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.8,
+   "reviews": 398
+  },
+  {
+   "position": 22,
+   "title": "Apple iPhone 15 Pro Max (Brand New Sealed Packed)",
+   "source": "Unbox Your Mobile",
+   "price": "₹84,500",
+   "extracted_price": 84500,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=catalogid:9357636644902591447,productid:9314467781776344614,headlineOfferDocid:2310790574997937244,imageDocid:18193254226555319582,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery by Tue"
+  },
+  {
+   "position": 23,
+   "title": "Refurbished Apple iPhone 15 Pro Max (EMI: ₹ 6588 / mon)",
+   "source": "EMI Snapmint",
+   "price": "₹78,399",
+   "extracted_price": 78399,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:3073906661746992895,headlineOfferDocid:3073906661746992895,imageDocid:11040991887083484030,rds:PC_3771882326689571212|PROD_PC_3771882326689571212,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.5,
+   "reviews": 97,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 24,
+   "title": "Apple iPhone 15 | 128GB | Black",
+   "source": "myG",
+   "price": "₹58,099",
+   "extracted_price": 58099,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:3424924806840640917,headlineOfferDocid:3424924806840640917,imageDocid:4895994613129818306,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 25,
+   "title": "Apple iPhone 15 Pro (128GB) Black Titanium-Esim | Control Z | Free Gifts",
+   "source": "Control Z",
+   "price": "₹71,999",
+   "extracted_price": 71999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:8673959127900578661,headlineOfferDocid:8673959127900578661,imageDocid:911184251955948937,rds:PC_11795796123145720151|PROD_PC_11795796123145720151,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.4,
+   "reviews": 11000,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 26,
+   "title": "Apple iPhone 15 – Ovantica Assured – Superb Grade | 128GB | Yellow – by Ovantica",
+   "source": "Ovantica.com",
+   "price": "₹43,999",
+   "extracted_price": 43999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:10780131366457386554,headlineOfferDocid:10780131366457386554,imageDocid:13447790222407419164,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 27,
+   "title": "Apple iPhone 15 with TIKTOK app - 128 GB - Pink (Verizon)",
+   "source": "ubuy.co.in",
+   "price": "₹63,420",
+   "extracted_price": 63420,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:3397946441045639462,headlineOfferDocid:3397946441045639462,imageDocid:8328515721030060218,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 28,
+   "title": "Apple iPhone 15, 128GB - 6GB Ram / Black / Very Good",
+   "source": "FoneZone.com",
+   "price": "₹33,800.37",
+   "extracted_price": 33800.37,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:6873548248223526944,headlineOfferDocid:6873548248223526944,imageDocid:2719340175403915614,rds:PC_6601648695432433635|PROD_PC_6601648695432433635,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 30000
+  },
+  {
+   "position": 29,
+   "title": "Refurbished Apple iPhone 15 Pro (EMI: ₹ 6185 / mon)",
+   "source": "EMI Snapmint",
+   "price": "₹73,599",
+   "extracted_price": 73599,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:14514317310094754636,headlineOfferDocid:14514317310094754636,imageDocid:17123935788887000428,rds:PC_11795796123145720151|PROD_PC_11795796123145720151,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.4,
+   "reviews": 10000,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 30,
+   "title": "Refurbished iPhone 15 - Certified with Warranty | Grest 128 GB / Superb / Blue",
+   "source": "Grest",
+   "price": "₹47,499",
+   "extracted_price": 47499,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:5142766248008623114,headlineOfferDocid:5142766248008623114,imageDocid:8727786992175557577,rds:PC_11091666375258774754|PROD_PC_11091666375258774754,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.7,
+   "reviews": 24000,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 31,
+   "title": "(Used) Apple iPhone 15 128 GB Black (Battery Health 82%) (Minor Scratch & Dent) (Pre-owned)",
+   "source": "GameLoot",
+   "price": "₹38,999",
+   "extracted_price": 38999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:10931598908690802116,headlineOfferDocid:10931598908690802116,imageDocid:4010586523383567352,rds:PC_17042137608687702162|PROD_PC_17042137608687702162,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.7,
+   "reviews": 211,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 32,
+   "title": "Apple iPhone 15 – Certified Refurbished – Fair Grade | 128GB | Green – by Ovantica",
+   "source": "Ovantica.com",
+   "price": "₹39,999",
+   "extracted_price": 39999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:6180235393955104987,headlineOfferDocid:6180235393955104987,imageDocid:12105219294801384526,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 33,
+   "title": "Apple iPhone 15 Black 128GB Model A2846 MTLV3J/A Smartphone",
+   "source": "ubuy.co.in",
+   "price": "₹63,288",
+   "extracted_price": 63288,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:18178200778100276167,headlineOfferDocid:18178200778100276167,imageDocid:1936424326065337981,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 34,
+   "title": "Refurbished Apple iPhone 15 Pro (EMI: ₹ 6975 / mon)",
+   "source": "EMI Snapmint",
+   "price": "₹82,999",
+   "extracted_price": 82999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:9479343499423526949,headlineOfferDocid:9479343499423526949,imageDocid:12025039913335026304,rds:PC_11795796123145720151|PROD_PC_11795796123145720151,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.4,
+   "reviews": 11000,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 35,
+   "title": "Apple iPhone 15 128GB Factory Unlocked",
+   "source": "Tradeindia.com",
+   "price": "₹65,000",
+   "extracted_price": 65000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:3464270753110101071,headlineOfferDocid:3464270753110101071,imageDocid:7447091562607597657,rds:CID_17912638199805170902|PROD_CID_17912638199805170902,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 12,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 36,
+   "title": "Apple iPhone 15 pro, 256GB / Black Titanium / Very Good",
+   "source": "FoneZone.me",
+   "price": "₹66,030.68",
+   "extracted_price": 66030.68,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:16977186324909709342,headlineOfferDocid:16977186324909709342,imageDocid:16866191373913986405,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 37,
+   "title": "Buy Apple iPhone 15 Refurbished – EasyPhones Blue / 256 GB / Superb (Like-New)",
+   "source": "EasyPhones",
+   "price": "₹48,999",
+   "extracted_price": 48999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:14155386104402758755,headlineOfferDocid:14155386104402758755,imageDocid:3489260056643399597,rds:PC_12951593125278288676|PROD_PC_12951593125278288676,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.8,
+   "reviews": 113,
+   "delivery": "Free delivery by Sun"
+  },
+  {
+   "position": 38,
+   "title": "Apple iPhone 15 Pro Blue Titanium - (6GB, 128GB) Super By ovantica",
+   "source": "Ovantica.com",
+   "price": "₹68,999",
+   "extracted_price": 68999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:11516306921080527093,headlineOfferDocid:11516306921080527093,imageDocid:538839969737941687,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 39,
+   "title": "Apple iPhone 15 - 128 GB - Pink T-Mobile",
+   "source": "ubuy.co.in",
+   "price": "₹87,192",
+   "extracted_price": 87192,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:13209212648137857201,headlineOfferDocid:13209212648137857201,imageDocid:18174062232705281628,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 40,
+   "title": "Refurbished Apple iPhone 15 Pro Max (EMI: ₹ 7143 / mon)",
+   "source": "EMI Snapmint",
+   "price": "₹84,999",
+   "extracted_price": 84999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=iPhone 15&prds=productid:11037987205293250673,headlineOfferDocid:11037987205293250673,imageDocid:9958658198557663338,rds:PC_4063346454632619682|PROD_PC_4063346454632619682,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.5,
+   "reviews": 2200,
+   "delivery": "Free delivery"
+  }
+ ]
+}

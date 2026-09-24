@@ -1,0 +1,421 @@
+{
+ "query": "HP Victus gaming laptop",
+ "country": "in",
+ "collected": "2026-09-24",
+ "results": [
+  {
+   "position": 1,
+   "title": "HP Victus Gaming Laptop",
+   "source": "Amazon.in",
+   "price": "₹1,16,000",
+   "extracted_price": 116000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:3708048934263085785,productid:15954023033061614795,headlineOfferDocid:14173441589606741233,imageDocid:9423219431069525458,rds:PC_4909020454252952272|PROD_PC_4909020454252952272,gpcid:4909020454252952272,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 20,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 2,
+   "title": "Victus Gaming Laptop 15-fb3383AX -15.6 \" -39.6 cm diagonal FHD 144 Hz",
+   "source": "HP Store India",
+   "price": "₹94,999",
+   "extracted_price": 94999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:10089584187598531100,productid:7304279197219850706,headlineOfferDocid:14215289637113816329,imageDocid:1611036899650113046,rds:PC_12088290673628221443|PROD_PC_12088290673628221443,gpcid:12088290673628221443,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 10,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 3,
+   "title": "HP Victus 15-fa2197TX Intel Core i5 13th Gen Gaming Laptop",
+   "source": "Reliance Digital",
+   "price": "₹81,495",
+   "extracted_price": 81495,
+   "old_price": "2% off₹83,495",
+   "extracted_old_price": 2,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:6773156455371569201,productid:14125982280356648876,headlineOfferDocid:3926326798253683760,imageDocid:14087610461919933348,rds:PC_6136060883912467128|PROD_PC_6136060883912467128,gpcid:6136060883912467128,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 4,
+   "title": "Victus Gaming Laptop 15-fb3385AX -15.6 \" -39.6 cm diagonal FHD 144 Hz",
+   "source": "HP Store India",
+   "price": "₹1,19,999",
+   "extracted_price": 119999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:8705616004021824233,productid:9589606634934384183,headlineOfferDocid:16737104712369820521,imageDocid:13594383558837576867,rds:PC_14173174879825798646|PROD_PC_14173174879825798646,gpcid:14173174879825798646,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 10,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 5,
+   "title": "Victus Gaming Laptop 15-fa3006TX -15.6 \" -39.6 cm diagonal FHD",
+   "source": "HP Store India",
+   "price": "₹1,24,999",
+   "extracted_price": 124999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:15579593654989189010,productid:16405225524517351648,headlineOfferDocid:8072282600545126900,imageDocid:18414134158265927353,rds:PC_564996964062965671|PROD_PC_564996964062965671,gpcid:564996964062965671,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 6,
+   "title": "HP Victus 39.6 cm Gaming Laptop 15-fb3118AX",
+   "source": "Amazon.in",
+   "price": "₹1,14,990",
+   "extracted_price": 114990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:15145608181259585751,productid:10049274223497696399,headlineOfferDocid:1016506718103704018,imageDocid:2177300014778149484,rds:PC_5438691251864796646|PROD_PC_5438691251864796646,gpcid:15488671142349480151,mid:576462865569058517,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 10,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 7,
+   "title": "HP Victus Gaming AMD Ryzen 7 7445HS Windows 11 Home Laptop",
+   "source": "Flipkart",
+   "price": "₹94,144",
+   "extracted_price": 94144,
+   "old_price": "15% off₹1,10,990",
+   "extracted_old_price": 15,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:10456789176815846859,productid:16151774366532668364,headlineOfferDocid:11179870409455175612,imageDocid:16858353586913462686,rds:PC_12609118366025336088|PROD_PC_12609118366025336088,gpcid:12609118366025336088,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 10,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 8,
+   "title": "HP Victus 15-fb3125AX AMD Ryzen 7 Gaming Laptop",
+   "source": "Reliance Digital",
+   "price": "₹79,495",
+   "extracted_price": 79495,
+   "old_price": "2% off₹81,495",
+   "extracted_old_price": 2,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:5925026510360891791,productid:15850875510302227779,headlineOfferDocid:6937462363408188558,imageDocid:7471306769379075476,rds:PC_9078529667293276037|PROD_PC_9078529667293276037,gpcid:9078529667293276037,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 11,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 9,
+   "title": "HP Victus Gaming Intel Core I5 12th Gen Windows 11 Home Laptop",
+   "source": "GameLoot",
+   "price": "₹35,000",
+   "extracted_price": 35000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:16677726237088561150,productid:6311926127568612817,headlineOfferDocid:5689998360555371267,imageDocid:3450791780786790734,rds:PC_15933167962553721902|PROD_PC_15933167962553721902,gpcid:15933167962553721902,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 6
+  },
+  {
+   "position": 10,
+   "title": "HP Victus 15-fb0178AX AMD Ryzen 5 5600H Gaming Laptop",
+   "source": "Reliance Digital",
+   "price": "₹70,495",
+   "extracted_price": 70495,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:4949096248470389860,productid:4078640765469959840,headlineOfferDocid:8453543114462906896,imageDocid:17813950494200345410,gpcid:16403636177767624423,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 11,
+   "title": "HP Victus 15-fb3123AX AMD Ryzen 7 Gaming Laptop",
+   "source": "Syga India",
+   "price": "₹67,990",
+   "extracted_price": 67990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:8629457351680023154,productid:1979855474606225456,headlineOfferDocid:997892329230987871,imageDocid:10944999083926573574,rds:PC_9621486693165127468|PROD_PC_9621486693165127468,gpcid:9621486693165127468,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 10,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 12,
+   "title": "HP Victus 39.6 cm Gaming Laptop 15-fa2381TX",
+   "source": "Flipkart",
+   "price": "₹1,29,000",
+   "extracted_price": 129000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:2950779614608457403,productid:1024981784742143822,headlineOfferDocid:12949634010633801161,imageDocid:16780063135081285033,rds:PC_18442271358847863424|PROD_PC_18442271358847863424,gpcid:18442271358847863424,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.1,
+   "reviews": 20,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 13,
+   "title": "HP Smartchoice Victus 13th Gen i7-13620H 6GB RTX 4050 16GB DDR4 512GB SSD",
+   "source": "Meetel Computer's & Coated Paper Co.",
+   "price": "₹88,552.14",
+   "extracted_price": 88552.14,
+   "old_price": "Usually ₹1,34,990",
+   "extracted_old_price": 134990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:1140950601357200720,productid:16265409163106548267,headlineOfferDocid:1108515071934919827,imageDocid:12694783970965138163,rds:PC_14699993994436474482|PROD_PC_14699993994436474482,gpcid:14699993994436474482,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19
+  },
+  {
+   "position": 14,
+   "title": "HP Victus 40.9 cm Gaming Laptop 16-s0095AX",
+   "source": "GameLoot",
+   "price": "₹37,000",
+   "extracted_price": 37000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:5339527536375825178,productid:16461519420699172995,headlineOfferDocid:17004668885475925247,imageDocid:10169312172967551873,gpcid:767826689913185027,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 15,
+   "title": "HP Victus Gaming AMD Ryzen 5 5600H Windows 11 Home Laptop",
+   "source": "Gadgets Now",
+   "price": "₹57,990",
+   "extracted_price": 57990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:2014879674999916998,productid:2305152913678656470,headlineOfferDocid:9204089854647232268,imageDocid:7325670553796849887,gpcid:8690743131208707175,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery by Wed"
+  },
+  {
+   "position": 16,
+   "title": "HP Victus 15 fa2316TX Gaming Laptop",
+   "source": "Vijay Sales",
+   "price": "₹97,699",
+   "extracted_price": 97699,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:8349465901706012240,productid:15085796509721033542,headlineOfferDocid:1652496843827265384,imageDocid:15904680837663340714,rds:PC_2369889889980308386|PROD_PC_2369889889980308386,gpcid:2369889889980308386,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free next-day delivery"
+  },
+  {
+   "position": 17,
+   "title": "HP Victus Gaming Intel Core I7 12th Gen Windows 11 Home Laptop",
+   "source": "GameLoot",
+   "price": "₹37,000",
+   "extracted_price": 37000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:5570920410154324492,productid:12067362995576987426,headlineOfferDocid:10973192801749657968,imageDocid:1380618395490084419,gpcid:4782812267190758070,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 18,
+   "title": "HP Victus 15-fa2375TX Intel Core i5 13th Gen Gaming Laptop",
+   "source": "Reliance Digital",
+   "price": "₹91,995",
+   "extracted_price": 91995,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:8835221866022639244,productid:16179554219543445520,headlineOfferDocid:16766881821616690331,imageDocid:2158803221270280969,rds:PC_14485777187964888891|PROD_PC_14485777187964888891,gpcid:14485777187964888891,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 19,
+   "title": "Hp Victusi5 14th Gen Intel Core 5 210h - 24 Gb/512 Gb Ssd/Windows 11 Home/4 Gb Graphics/Nvidia Geforce Rtx 3050 15-fa2500tx / 15-fa2497tx Gaming Lapto",
+   "source": "Amazon.in",
+   "price": "₹92,990",
+   "extracted_price": 92990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:3302333869296098613,productid:6947268786895885750,headlineOfferDocid:6762862512644363626,imageDocid:3194578917849808711,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 20,
+   "title": "HP Victus 15-fb3004AX AMD Ryzen 5 Gaming Laptop",
+   "source": "GameLoot",
+   "price": "₹28,000",
+   "extracted_price": 28000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:4726829892758759451,productid:5336547249038153250,headlineOfferDocid:3995364747992190762,imageDocid:11516411157981006253,rds:PC_4203270224145319529|PROD_PC_4203270224145319529,gpcid:4203270224145319529,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 10
+  },
+  {
+   "position": 21,
+   "title": "Hp Victus, 12th Gen Intel Core i5-12450H, Rtx 3050 (16GB DDR4, 512GB SSD) FHD, IPS, 144Hz, 15.6\"/39.6cm, Win 11, Office 21, Blue, 2.3kg, fa1379TX/",
+   "source": "Tradeindia.com",
+   "price": "₹59,000",
+   "extracted_price": 59000,
+   "old_price": "Usually ₹68,500",
+   "extracted_old_price": 68500,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:3277696512584209792,productid:1068156961221247898,headlineOfferDocid:7134858099912878181,imageDocid:4494561891437251210,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 22,
+   "title": "Hp Victus Intel Core I5 12th Gen - 8 Gb/512 Gb Ssd/Windows 11 Home/4 Gb Graphics/Nvidia Geforce Gtx 1650/144 Hz 15-fa0070tx Gaming Laptop",
+   "source": "Flipkart",
+   "price": "₹82,639",
+   "extracted_price": 82639,
+   "old_price": "22% off₹1,05,990",
+   "extracted_old_price": 22,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:16221635231971542988,productid:15761085678931165504,headlineOfferDocid:17804065580049418033,imageDocid:1077606661986881296,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 23,
+   "title": "HP Victus 15-fa2192TX Gaming Laptop",
+   "source": "Reliance Digital",
+   "price": "₹74,995",
+   "extracted_price": 74995,
+   "old_price": "3% off₹76,995",
+   "extracted_old_price": 3,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:2139266956282718934,productid:16058602409202091552,headlineOfferDocid:4963393026619449744,imageDocid:537255607297453777,rds:PC_14393876512804058055|PROD_PC_14393876512804058055,gpcid:14393876512804058055,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.0,
+   "reviews": 1,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 24,
+   "title": "HP Victus 16-d0354tx Intel Core I5 11th Gen",
+   "source": "GameLoot",
+   "price": "₹37,000",
+   "extracted_price": 37000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:17038100723508412607,productid:3485079215459111688,headlineOfferDocid:7609154321614238801,imageDocid:6600906284011284354,gpcid:15126646423188578263,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 25,
+   "title": "HP Victus 15-fa2700TX Intel Core i5 13th Gen Gaming Laptop",
+   "source": "Amazon.in",
+   "price": "₹1,08,750",
+   "extracted_price": 108750,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:1593784653487180057,productid:7450077201802825980,headlineOfferDocid:15537423435998019065,imageDocid:2830923124749093351,rds:PC_6842483067612059148|PROD_PC_6842483067612059148,gpcid:6842483067612059148,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 26,
+   "title": "HP Victus 15-fa2508TX Gaming Laptop",
+   "source": "Vijay Sales",
+   "price": "₹1,09,490",
+   "extracted_price": 109490,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:15888639615608867030,productid:14527628551238680521,headlineOfferDocid:12885406210430644202,imageDocid:11628005874859522180,rds:PC_4893819667443831035|PROD_PC_4893819667443831035,gpcid:4893819667443831035,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free next-day delivery"
+  },
+  {
+   "position": 27,
+   "title": "HP Victus 15-FA0888TX Gaming Laptop",
+   "source": "GameLoot",
+   "price": "₹30,000",
+   "extracted_price": 30000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:5887225840313962620,productid:13546280746464232567,headlineOfferDocid:1883175386760861348,imageDocid:11516411157981006253,gpcid:274384501732227236,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 28,
+   "title": "HP Victus Gaming 15,6\" FHD 144Hz IPS i5-13420H 16GB/512GB RTX4050 kein Betriebssystem 15-fa2705ng (B7VK1EA#ABD)",
+   "source": "Meetel Computer's & Coated Paper Co.",
+   "price": "₹82,137.29",
+   "extracted_price": 82137.29,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:5346716378161228453,productid:6543469698025768014,headlineOfferDocid:4306925386808690144,imageDocid:9815308072440349417,gpcid:6839185019557244728,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 29,
+   "title": "Hp Victus 15 Intel Core I5 13th Gen 13420h 16 Gb/512 Gb Ssd/Windows 11 Home/6 Gb Graphics/Nvidia Geforce Rtx 3050 15-fa1327tx Gaming Laptop",
+   "source": "Flipkart",
+   "price": "₹92,110",
+   "extracted_price": 92110,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:6128823170721876824,productid:2048346851344489958,headlineOfferDocid:10240818900539831481,imageDocid:13932839634167029924,gpcid:4109516084877074810,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 30,
+   "title": "HP Victus 12th Gen Intel Core i7 15.6 inch 15-fa0354TX FHD Gaming Laptop",
+   "source": "GameLoot",
+   "price": "₹40,000",
+   "extracted_price": 40000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:12570885469662432655,productid:6085206064689534055,headlineOfferDocid:1755892772188928323,imageDocid:17315426190174077100,gpcid:14875282219583845956,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 31,
+   "title": "HP Victus 15-fa2701TX Intel Core i5 13th Gen Gaming Laptop",
+   "source": "Reliance Digital",
+   "price": "₹87,490",
+   "extracted_price": 87490,
+   "old_price": "2% off₹89,495",
+   "extracted_old_price": 2,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:2871756991262617524,productid:7447960325539859502,headlineOfferDocid:12414555065268307616,imageDocid:5619872435460054079,rds:PC_4779783167706311179|PROD_PC_4779783167706311179,gpcid:4779783167706311179,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free delivery by Sat"
+  },
+  {
+   "position": 32,
+   "title": "HP Victus 15-fa1279TX Gaming Laptop",
+   "source": "Amazon.in",
+   "price": "₹1,15,990",
+   "extracted_price": 115990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:8670672898416920584,productid:15293693785447864679,headlineOfferDocid:8883390831153328856,imageDocid:17830971521476041144,rds:PC_5341551324338239235|PROD_PC_5341551324338239235,gpcid:5341551324338239235,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 4,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 33,
+   "title": "HP Victus 15 fa2308TX",
+   "source": "GameLoot",
+   "price": "₹75,000",
+   "extracted_price": 75000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:6442449502485523023,productid:14217476322395432377,headlineOfferDocid:17311476952065095574,imageDocid:11516411157981006253,rds:PC_9765697715615360284|PROD_PC_9765697715615360284,gpcid:9765697715615360284,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19
+  },
+  {
+   "position": 34,
+   "title": "HP Victus Gaming Laptop 15-FB3120AX",
+   "source": "myitworld.com",
+   "price": "₹1,28,999",
+   "extracted_price": 128999,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=productid:13639552336099553459,headlineOfferDocid:13639552336099553459,imageDocid:16742212669014329341,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 35,
+   "title": "Hp Victus Intel Core I5 14th Gen 14450hx - 24 Gb/512 Gb Ssd/Windows 11 Home/6 Gb Graphics/Nvidia Geforce Rtx 4050 15-fa2382tx Gaming Laptop",
+   "source": "Amazon.in",
+   "price": "₹1,28,850",
+   "extracted_price": 128850,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:16450596027281973088,productid:17490862709386306886,headlineOfferDocid:17158820503211710199,imageDocid:13153693688983607485,rds:CID_16450596027281973088|PROD_CID_16450596027281973088,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.2,
+   "reviews": 19,
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 36,
+   "title": "HP Victus 15-fb0185AX Amd Ryzen 5-5600H Gaming Laptop",
+   "source": "GameLoot",
+   "price": "₹27,000",
+   "extracted_price": 27000,
+   "old_price": "Usually ₹47,500",
+   "extracted_old_price": 47500,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:10100264897610722161,productid:359972518603886268,headlineOfferDocid:17559660056880530641,imageDocid:11516411157981006253,rds:PC_229195975186942835|PROD_PC_229195975186942835,gpcid:229195975186942835,mid:576462828420326125,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 5.0,
+   "reviews": 12
+  },
+  {
+   "position": 37,
+   "title": "HP Victus 16 Gaming Laptop (r1703TX) | 14th Gen i5 & RTX 3050 6GB",
+   "source": "Meetel Computer's & Coated Paper Co.",
+   "price": "₹74,737.46",
+   "extracted_price": 74737.46,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=productid:12944162297627027300,headlineOfferDocid:12944162297627027300,imageDocid:8378446985299036498,pvt:hg&hl=en&gl=in&udm=28"
+  },
+  {
+   "position": 38,
+   "title": "HP Victus 15 fa1332tx Intel Core i7 13th Gen Gaming Laptop",
+   "source": "Aajjo.com",
+   "price": "₹1,02,000",
+   "extracted_price": 102000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:7512966065174277616,productid:16854207419890475682,headlineOfferDocid:6572681273666131565,imageDocid:2283347364487362119,gpcid:12672435796566364121,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 39,
+   "title": "HP Victus 15-fa1226tx Gaming Laptop 15.6 inch FHD 144Hz Core I5 12th Gen",
+   "source": "Flipkart",
+   "price": "₹89,990",
+   "extracted_price": 89990,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:13598913167817650781,productid:15060403322436173140,headlineOfferDocid:10483798526943438154,imageDocid:7613181954548412552,gpcid:2298831599666505069,pvt:hg&hl=en&gl=in&udm=28",
+   "delivery": "Free delivery"
+  },
+  {
+   "position": 40,
+   "title": "HP Laptop Victus Gaming Laptop 15-fb3189AX",
+   "source": "Amazon.in",
+   "price": "₹95,000",
+   "extracted_price": 95000,
+   "product_link": "https://www.google.com/search?ibp=oshop&q=HP Victus gaming laptop&prds=catalogid:12513504049443434929,productid:4807169419116443865,headlineOfferDocid:2086866652250986425,imageDocid:15682962324932580034,rds:PC_8449196419326263554|PROD_PC_8449196419326263554,gpcid:8449196419326263554,pvt:hg&hl=en&gl=in&udm=28",
+   "rating": 4.6,
+   "reviews": 10,
+   "delivery": "Free delivery"
+  }
+ ]
+}
